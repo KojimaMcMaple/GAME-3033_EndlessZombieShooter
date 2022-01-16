@@ -2,6 +2,7 @@
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
 #endif
+using Cinemachine;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -58,10 +59,21 @@ namespace StarterAssets
 		public float CameraAngleOverride = 0.0f;
 		[Tooltip("For locking the camera position on all axis")]
 		public bool LockCameraPosition = false;
+		[Tooltip("How sensitive the camera rotation should be when NOT aiming")]
+		[SerializeField] private float look_sensitivity_ = 0.6f;
+		[Tooltip("How sensitive the camera rotation should be when aiming")]
+		[SerializeField] private float aim_sensitivity_ = 0.3f;
+
+		[Header("Aiming")]
+		[SerializeField] private CinemachineVirtualCamera aim_cam_;
+		[SerializeField] private GameObject aim_crosshair_;
+		[SerializeField] private LayerMask aim_collider_mask_ = new LayerMask();
+		[SerializeField] private Transform debug_transform_;
 
 		// cinemachine
 		private float _cinemachineTargetYaw;
 		private float _cinemachineTargetPitch;
+		private float _cam_sensitivity;
 
 		// player
 		private float _speed;
@@ -70,6 +82,7 @@ namespace StarterAssets
 		private float _rotationVelocity;
 		private float _verticalVelocity;
 		private float _terminalVelocity = 53.0f;
+		private bool _can_player_rotate = true;
 
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
@@ -120,6 +133,35 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+
+			// AIMING
+			Vector3 mouse_world_pos = Vector3.zero;
+            if (_input.is_aiming)
+            {
+				aim_cam_.gameObject.SetActive(true);
+				aim_crosshair_.SetActive(true);
+				_cam_sensitivity = aim_sensitivity_;
+				_can_player_rotate = false;
+				Vector2 screen_center_point = new Vector2(Screen.width / 2f, Screen.height / 2f);
+				Ray ray = Camera.main.ScreenPointToRay(screen_center_point);
+                if (Physics.Raycast(ray, out RaycastHit hit, 999f, aim_collider_mask_))
+                {
+					debug_transform_.position = hit.point;
+					mouse_world_pos = hit.point;
+
+				}
+				Vector3 aim_target_world_pos = mouse_world_pos;
+				aim_target_world_pos.y = transform.position.y;
+				Vector3 aim_dir = (aim_target_world_pos - transform.position).normalized;
+				transform.forward = Vector3.Lerp(transform.forward, aim_dir, Time.deltaTime * 20f);
+			}
+            else
+            {
+				aim_cam_.gameObject.SetActive(false);
+				aim_crosshair_.SetActive(false);
+				_cam_sensitivity = look_sensitivity_;
+				_can_player_rotate = true;
+			}
 		}
 
 		private void LateUpdate()
@@ -154,8 +196,8 @@ namespace StarterAssets
 			// if there is an input and camera position is not fixed
 			if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
 			{
-				_cinemachineTargetYaw += _input.look.x * Time.deltaTime;
-				_cinemachineTargetPitch += _input.look.y * Time.deltaTime;
+				_cinemachineTargetYaw += _input.look.x * _cam_sensitivity * Time.deltaTime;
+				_cinemachineTargetPitch += _input.look.y * _cam_sensitivity * Time.deltaTime;
 			}
 
 			// clamp our rotations so our values are limited 360 degrees
@@ -209,8 +251,11 @@ namespace StarterAssets
 				_targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
 				float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
 
-				// rotate to face input direction relative to camera position
-				transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                // rotate to face input direction relative to camera position
+                if (_can_player_rotate)
+                {
+					transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+				}
 			}
 
 
