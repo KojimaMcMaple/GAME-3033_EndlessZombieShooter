@@ -69,6 +69,7 @@ namespace StarterAssets
 		[SerializeField] private GameObject aim_crosshair_;
 		[SerializeField] private LayerMask aim_collider_mask_ = new LayerMask();
 		[SerializeField] private Transform debug_transform_;
+		[SerializeField] private Transform bullet_spawn_pos_;
 
 		// cinemachine
 		private float _cinemachineTargetYaw;
@@ -99,6 +100,7 @@ namespace StarterAssets
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
+		private BulletManager _bulletManager;
 
 		private const float _threshold = 0.01f;
 
@@ -111,6 +113,7 @@ namespace StarterAssets
 			{
 				_mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 			}
+			_bulletManager = FindObjectOfType<BulletManager>();
 		}
 
 		private void Start()
@@ -148,12 +151,24 @@ namespace StarterAssets
                 {
 					debug_transform_.position = hit.point;
 					mouse_world_pos = hit.point;
-
+				}
+				else 
+				{
+					mouse_world_pos = ray.GetPoint(10); //bug fix for when player's aim doesn't hit anything
 				}
 				Vector3 aim_target_world_pos = mouse_world_pos;
 				aim_target_world_pos.y = transform.position.y;
-				Vector3 aim_dir = (aim_target_world_pos - transform.position).normalized;
-				transform.forward = Vector3.Lerp(transform.forward, aim_dir, Time.deltaTime * 20f);
+				Vector3 aim_look_dir = (aim_target_world_pos - transform.position).normalized;
+				transform.forward = Vector3.Lerp(transform.forward, aim_look_dir, Time.deltaTime * 20f);
+                
+				// SHOOTING
+				if (_input.is_shooting)
+                {
+					Vector3 aim_shoot_dir = (mouse_world_pos - bullet_spawn_pos_.position).normalized; //get dir from bullet_spawn_pos_ to crosshair
+					//_bulletManager.GetBullet(bullet_spawn_pos_.position, Quaternion.LookRotation(aim_dir, Vector3.up), GlobalEnums.ObjType.PLAYER);
+					_bulletManager.GetBullet(bullet_spawn_pos_.position, aim_shoot_dir, GlobalEnums.ObjType.PLAYER);
+					_input.is_shooting = false;
+				}
 			}
             else
             {
