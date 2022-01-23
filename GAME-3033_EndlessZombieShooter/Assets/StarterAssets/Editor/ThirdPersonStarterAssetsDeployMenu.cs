@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace StarterAssets
+namespace Player
 {
     public partial class StarterAssetsDeployMenu : ScriptableObject
     {

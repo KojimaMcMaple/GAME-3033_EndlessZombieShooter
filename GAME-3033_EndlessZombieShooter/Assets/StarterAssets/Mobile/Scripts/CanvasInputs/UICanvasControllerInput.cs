@@ -1,12 +1,12 @@
 using UnityEngine;
 
-namespace StarterAssets
+namespace Player
 {
     public class UICanvasControllerInput : MonoBehaviour
     {
 
         [Header("Output")]
-        public StarterAssetsInputs starterAssetsInputs;
+        public ActionMappingsInputs starterAssetsInputs;
 
         public void VirtualMoveInput(Vector2 virtualMoveDirection)
         {
