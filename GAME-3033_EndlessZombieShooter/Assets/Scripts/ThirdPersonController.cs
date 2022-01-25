@@ -95,6 +95,9 @@ namespace Player
 		private int anim_id_jump_;
 		private int anim_id_freefall_;
 		private int anim_id_motion_speed_;
+		private int anim_id_input_x_;
+		private int anim_id_input_y_;
+		private int anim_id_shoot_;
 
 		private Animator animator_;
 		private CharacterController controller_;
@@ -140,8 +143,9 @@ namespace Player
 
 			// AIMING
 			Vector3 mouse_world_pos = Vector3.zero;
-            if (input_.is_aiming)
+            if (input_.is_aiming && !input_.sprint) //no aim while sprinting
             {
+				// Create crosshair
 				aim_cam_.gameObject.SetActive(true);
 				aim_crosshair_.SetActive(true);
 				cam_sensitivity_ = aim_sensitivity_;
@@ -157,11 +161,20 @@ namespace Player
 				{
 					mouse_world_pos = ray.GetPoint(10); //bug fix for when player's aim doesn't hit anything
 				}
+
+				// Lock player rotation
 				Vector3 aim_target_world_pos = mouse_world_pos;
 				aim_target_world_pos.y = transform.position.y;
 				Vector3 aim_look_dir = (aim_target_world_pos - transform.position).normalized;
 				transform.forward = Vector3.Lerp(transform.forward, aim_look_dir, Time.deltaTime * 20f);
-                
+
+				// Animation
+				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
+                if (is_grounded)
+                {
+					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body
+				}
+
 				// SHOOTING
 				if (input_.is_shooting)
                 {
@@ -169,6 +182,9 @@ namespace Player
 					//_bulletManager.GetBullet(bullet_spawn_pos_.position, Quaternion.LookRotation(aim_dir, Vector3.up), GlobalEnums.ObjType.PLAYER);
 					bullet_manager_.GetBullet(bullet_spawn_pos_.position, aim_shoot_dir, GlobalEnums.ObjType.PLAYER);
 					input_.is_shooting = false;
+
+					// Animation
+					animator_.SetTrigger(anim_id_shoot_);
 				}
 			}
             else
@@ -177,6 +193,13 @@ namespace Player
 				aim_crosshair_.SetActive(false);
 				cam_sensitivity_ = look_sensitivity_;
 				can_player_rotate_ = true;
+
+				// Animation
+				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //upper body
+				if (is_grounded)
+				{
+					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //lower body
+				}
 			}
 		}
 
@@ -195,6 +218,9 @@ namespace Player
 			anim_id_jump_ = Animator.StringToHash("Jump");
 			anim_id_freefall_ = Animator.StringToHash("FreeFall");
 			anim_id_motion_speed_ = Animator.StringToHash("MotionSpeed");
+			anim_id_input_x_ = Animator.StringToHash("InputX");
+			anim_id_input_y_ = Animator.StringToHash("InputY");
+			anim_id_shoot_ = Animator.StringToHash("Shoot");
 		}
 
 		private void GroundedCheck()
@@ -288,6 +314,8 @@ namespace Player
 			{
 				animator_.SetFloat(anim_id_speed_, anim_blend_);
 				animator_.SetFloat(anim_id_motion_speed_, inputMagnitude);
+				animator_.SetFloat(anim_id_input_x_, inputDirection.x);
+				animator_.SetFloat(anim_id_input_y_, inputDirection.y);
 			}
 		}
 
@@ -321,6 +349,7 @@ namespace Player
 					if (has_animator_)
 					{
 						animator_.SetBool(anim_id_jump_, true);
+						animator_.SetLayerWeight(2, 0f); //disable aiming lower body
 					}
 				}
 
