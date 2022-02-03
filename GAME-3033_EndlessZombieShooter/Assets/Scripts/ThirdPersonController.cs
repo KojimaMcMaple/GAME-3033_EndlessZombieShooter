@@ -3,6 +3,7 @@
 using UnityEngine.InputSystem;
 #endif
 using Cinemachine;
+using UnityEngine.Animations.Rigging;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -70,6 +71,7 @@ namespace Player
 		[SerializeField] private LayerMask aim_collider_mask_ = new LayerMask();
 		[SerializeField] private Transform debug_transform_;
 		[SerializeField] private Transform bullet_spawn_pos_;
+		[SerializeField] private Rig aim_rig_;
 
 		// cinemachine
 		private float cinemachine_target_yaw_;
@@ -104,6 +106,8 @@ namespace Player
 		private ActionMappingsInputs input_;
 		private GameObject main_cam_;
 		private BulletManager bullet_manager_;
+
+		private float aim_rig_weight_;
 
 		private const float threshold_ = 0.01f;
 
@@ -159,6 +163,7 @@ namespace Player
 				}
 				else 
 				{
+					debug_transform_.position = ray.GetPoint(10);
 					mouse_world_pos = ray.GetPoint(10); //bug fix for when player's aim doesn't hit anything
 				}
 
@@ -174,6 +179,7 @@ namespace Player
                 {
 					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body
 				}
+				aim_rig_weight_ = 1f;
 
 				// SHOOTING
 				if (input_.is_shooting)
@@ -200,7 +206,17 @@ namespace Player
 				{
 					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //lower body
 				}
+				aim_rig_weight_ = 0f;
 			}
+
+			//animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body //DEBUG
+			//if (is_grounded)
+			//{
+			//	animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body //DEBUG
+			//}
+			//aim_rig_weight_ = 1f; //DEBUG
+
+			aim_rig_.weight = Mathf.Lerp(aim_rig_.weight, aim_rig_weight_, Time.deltaTime * 20f);
 		}
 
 		private void LateUpdate()
