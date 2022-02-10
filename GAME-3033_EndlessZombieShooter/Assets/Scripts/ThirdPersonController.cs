@@ -14,7 +14,7 @@ namespace Player
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 	[RequireComponent(typeof(PlayerInput))]
 #endif
-	public class ThirdPersonController : MonoBehaviour
+	public class ThirdPersonController : MonoBehaviour, IDamageable<int>
 	{
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
@@ -73,6 +73,10 @@ namespace Player
 		[SerializeField] private Transform bullet_spawn_pos_;
 		[SerializeField] private Rig aim_rig_;
 
+		[Header("Gameplay Stats")]
+		[SerializeField] private int hp_ = 100;
+		[SerializeField] private Transform root_pos_;
+
 		// cinemachine
 		private float cinemachine_target_yaw_;
 		private float cinemachine_target_pitch_;
@@ -113,6 +117,9 @@ namespace Player
 
 		private bool has_animator_;
 
+		// gameplay
+		private bool is_dead_ = false;
+
 		private void Awake()
 		{
 			// get a reference to our main camera
@@ -121,6 +128,8 @@ namespace Player
 				main_cam_ = GameObject.FindGameObjectWithTag("MainCamera");
 			}
 			bullet_manager_ = FindObjectOfType<BulletManager>();
+
+			Init(); //IDamageable method
 		}
 
 		private void Start()
@@ -209,14 +218,14 @@ namespace Player
 				aim_rig_weight_ = 0f;
 			}
 
-			//animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body //DEBUG
-			//if (is_grounded)
-			//{
-			//	animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body //DEBUG
-			//}
-			//aim_rig_weight_ = 1f; //DEBUG
+            //animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body //DEBUG
+            //if (is_grounded)
+            //{
+            //    animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body //DEBUG
+            //}
+            //aim_rig_weight_ = 1f; //DEBUG
 
-			aim_rig_.weight = Mathf.Lerp(aim_rig_.weight, aim_rig_weight_, Time.deltaTime * 20f);
+            aim_rig_.weight = Mathf.Lerp(aim_rig_.weight, aim_rig_weight_, Time.deltaTime * 20f);
 		}
 
 		private void LateUpdate()
@@ -410,6 +419,55 @@ namespace Player
 			if (lfAngle < -360f) lfAngle += 360f;
 			if (lfAngle > 360f) lfAngle -= 360f;
 			return Mathf.Clamp(lfAngle, lfMin, lfMax);
+		}
+
+		public Vector3 GetRootPos()
+		{
+			return root_pos_.position;
+		}
+
+		/// <summary>
+		/// IDamageable methods
+		/// </summary>
+		public void Init() //Link hp to class hp
+		{
+			health = hp_;
+			obj_type = GlobalEnums.ObjType.PLAYER;
+		}
+		public int health { get; set; } //Health points
+		public GlobalEnums.ObjType obj_type { get; set; } //Type of gameobject
+		public void ApplyDamage(int damage_value) //Deals damage to this object
+		{
+			//StartCoroutine(cam_controller_.DoShake(0.15f, 0.4f));
+			health -= damage_value;
+			health = health < 0 ? 0 : health; //Clamps health so it doesn't go below 0
+											  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
+											  //flash_vfx_.DoFlash();
+											  //audio_source_.PlayOneShot(damaged_sfx_);
+			if (health == 0)
+			{
+				is_dead_ = true;
+				//explode_manager_.GetObj(this.transform.position, obj_type);
+				gameObject.SetActive(false);
+			}
+			Debug.Log(">>> Player HP is " + health.ToString());
+
+			//OnHealthChanged.Invoke(health);
+		}
+		public void HealDamage(int heal_value) //Adds health to object
+		{
+			if (health == hp_) //If full HP, IncrementScore
+			{
+				//game_manager_.IncrementScore(heal_value);
+				//audio_source_.PlayOneShot(food_score_sfx_);
+			}
+			else
+			{
+				health += heal_value;
+				health = health > hp_ ? hp_ : health; //Clamps health so it doesn't exceed hp_
+													  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
+			}
+			//OnHealthChanged.Invoke(health);
 		}
 
 		private void OnDrawGizmosSelected()
