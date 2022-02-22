@@ -76,6 +76,13 @@ namespace Player
 		[Header("Gameplay Stats")]
 		[SerializeField] private int hp_ = 100;
 		[SerializeField] private Transform root_pos_;
+		[SerializeField] private int ammo_max_ = 130; //total possible ammo in mag + inventory
+		[SerializeField] private int ammo_reserve_ = 100; //ammo outside mag
+		[SerializeField] private int ammo_mag_ = 30; //size of mag
+		[SerializeField] private int ammo_curr_ = 30; //curr ammo in mag
+
+		[Header("VFX_SFX")]
+		[SerializeField] ParticleSystem muzzle_flash_vfx_;
 
 		// cinemachine
 		private float cinemachine_target_yaw_;
@@ -104,6 +111,8 @@ namespace Player
 		private int anim_id_input_x_;
 		private int anim_id_input_y_;
 		private int anim_id_shoot_;
+		private int anim_id_reload_;
+		private int clip_idx_reload_;
 
 		private Animator animator_;
 		private CharacterController controller_;
@@ -119,6 +128,7 @@ namespace Player
 
 		// gameplay
 		private bool is_dead_ = false;
+		private bool is_reload_ = false;
 
 		private void Awake()
 		{
@@ -128,6 +138,8 @@ namespace Player
 				main_cam_ = GameObject.FindGameObjectWithTag("MainCamera");
 			}
 			bullet_manager_ = FindObjectOfType<BulletManager>();
+
+			ammo_curr_ = ammo_mag_;
 
 			Init(); //IDamageable method
 		}
@@ -144,6 +156,9 @@ namespace Player
 			// reset our timeouts on start
 			jump_cooldown_delta_ = jump_cooldown;
 			fall_cooldown_delta_ = fall_cooldown;
+
+			clip_idx_reload_ = GetAnimClipIdxByName(animator_, "Reload");
+			AddRuntimeAnimEvent(animator_, clip_idx_reload_, 2.3f, "DoEndReload", 0.0f);
 		}
 
 		private void Update()
@@ -167,12 +182,12 @@ namespace Player
 				Ray ray = Camera.main.ScreenPointToRay(screen_center_point);
                 if (Physics.Raycast(ray, out RaycastHit hit, 999f, aim_collider_mask_))
                 {
-					debug_transform_.position = hit.point;
-					mouse_world_pos = hit.point;
-				}
-				else 
-				{
-					debug_transform_.position = ray.GetPoint(10);
+                    //debug_transform_.position = hit.point;
+                    //mouse_world_pos = hit.point;
+                }
+                //else 
+                {
+                    debug_transform_.position = ray.GetPoint(10);
 					mouse_world_pos = ray.GetPoint(10); //bug fix for when player's aim doesn't hit anything
 				}
 
@@ -182,8 +197,11 @@ namespace Player
 				Vector3 aim_look_dir = (aim_target_world_pos - transform.position).normalized;
 				transform.forward = Vector3.Lerp(transform.forward, aim_look_dir, Time.deltaTime * 20f);
 
-				// Animation
-				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
+                // Animation
+                if (!is_reload_)
+                {
+					animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
+				}
                 if (is_grounded)
                 {
 					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body
@@ -193,24 +211,42 @@ namespace Player
 				// SHOOTING
 				if (input_.is_shooting)
                 {
-					Vector3 aim_shoot_dir = (mouse_world_pos - bullet_spawn_pos_.position).normalized; //get dir from bullet_spawn_pos_ to crosshair
-					//_bulletManager.GetBullet(bullet_spawn_pos_.position, Quaternion.LookRotation(aim_dir, Vector3.up), GlobalEnums.ObjType.PLAYER);
-					bullet_manager_.GetBullet(bullet_spawn_pos_.position, aim_shoot_dir, GlobalEnums.ObjType.PLAYER);
-					input_.is_shooting = false;
+                    if (ammo_curr_ > 0)
+                    {
+						Vector3 aim_shoot_dir = (mouse_world_pos - bullet_spawn_pos_.position).normalized; //get dir from bullet_spawn_pos_ to crosshair
+																										   //_bulletManager.GetBullet(bullet_spawn_pos_.position, Quaternion.LookRotation(aim_dir, Vector3.up), GlobalEnums.ObjType.PLAYER);
+						bullet_manager_.GetBullet(bullet_spawn_pos_.position, aim_shoot_dir, GlobalEnums.ObjType.PLAYER);
+						input_.is_shooting = false;
 
-					// Animation
-					animator_.SetTrigger(anim_id_shoot_);
+						// Animation
+						animator_.SetTrigger(anim_id_shoot_);
+
+						muzzle_flash_vfx_.Play();
+						ammo_curr_--;
+					}
+                    else if (!is_reload_)
+					{
+						DoReload();
+						input_.is_shooting = false; //kill input to prevent shooting when not intending to
+					}
 				}
 			}
             else
             {
+				if (input_.is_shooting)
+				{
+					input_.is_shooting = false; //kill input to prevent shooting when not intending to
+				}
 				aim_cam_.gameObject.SetActive(false);
 				aim_crosshair_.SetActive(false);
 				cam_sensitivity_ = look_sensitivity_;
 				can_player_rotate_ = true;
 
-				// Animation
-				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //upper body
+                // Animation
+                if (!is_reload_)
+                {
+					animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //upper body
+				}
 				if (is_grounded)
 				{
 					animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 0f, Time.deltaTime * 10f)); //lower body
@@ -218,14 +254,14 @@ namespace Player
 				aim_rig_weight_ = 0f;
 			}
 
-            //animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body //DEBUG
-            //if (is_grounded)
-            //{
-            //    animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body //DEBUG
-            //}
-            //aim_rig_weight_ = 1f; //DEBUG
+			//animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body //DEBUG
+			//if (is_grounded)
+			//{
+			//    animator_.SetLayerWeight(2, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //lower body //DEBUG
+			//}
+			//aim_rig_weight_ = 1f; //DEBUG
 
-            aim_rig_.weight = Mathf.Lerp(aim_rig_.weight, aim_rig_weight_, Time.deltaTime * 20f);
+			aim_rig_.weight = Mathf.Lerp(aim_rig_.weight, aim_rig_weight_, Time.deltaTime * 20f);
 		}
 
 		private void LateUpdate()
@@ -246,6 +282,7 @@ namespace Player
 			anim_id_input_x_ = Animator.StringToHash("InputX");
 			anim_id_input_y_ = Animator.StringToHash("InputY");
 			anim_id_shoot_ = Animator.StringToHash("Shoot");
+			anim_id_reload_ = Animator.StringToHash("Reload");
 		}
 
 		private void GroundedCheck()
@@ -340,7 +377,7 @@ namespace Player
 				animator_.SetFloat(anim_id_speed_, anim_blend_);
 				animator_.SetFloat(anim_id_motion_speed_, inputMagnitude);
 				animator_.SetFloat(anim_id_input_x_, inputDirection.x);
-				animator_.SetFloat(anim_id_input_y_, inputDirection.y);
+				animator_.SetFloat(anim_id_input_y_, inputDirection.z);
 			}
 		}
 
@@ -426,6 +463,26 @@ namespace Player
 			return root_pos_.position;
 		}
 
+		public void DoReload()
+        {
+            if (ammo_reserve_ > 0)
+            {
+				is_reload_ = true;
+				animator_.SetTrigger(anim_id_reload_);
+				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
+			}
+		}
+
+		public void DoEndReload()
+        {
+			int ammo_to_load = (ammo_mag_ - ammo_curr_);
+			int ammo_can_load = (ammo_reserve_ >= ammo_to_load) ? ammo_to_load : ammo_reserve_;
+			ammo_reserve_ -= ammo_can_load; //100 - (30 - 2) =  72 in reserve
+											//25 - 30 = -5
+			ammo_curr_ += ammo_can_load;
+			is_reload_ = false;
+		}
+
 		/// <summary>
 		/// IDamageable methods
 		/// </summary>
@@ -481,5 +538,28 @@ namespace Player
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - grounded_offset, transform.position.z), grounded_radius);
 		}
-	}
+
+		public int GetAnimClipIdxByName(Animator anim, string name)
+        {
+			AnimationClip[] clips = anim.runtimeAnimatorController.animationClips;
+			for (int i = 0; i < clips.Length; i++)
+            {
+                if (clips[i].name == name)
+                {
+					return i;
+                }
+            }
+			return -1;
+        }
+
+        public void AddRuntimeAnimEvent(Animator anim, int clip_idx, float time, string functionName, float floatParameter)
+        {
+            AnimationEvent animationEvent = new AnimationEvent();
+            animationEvent.functionName = functionName;
+            animationEvent.floatParameter = floatParameter;
+            animationEvent.time = time;
+            AnimationClip clip = anim.runtimeAnimatorController.animationClips[clip_idx];
+            clip.AddEvent(animationEvent);
+        }
+    }
 }
