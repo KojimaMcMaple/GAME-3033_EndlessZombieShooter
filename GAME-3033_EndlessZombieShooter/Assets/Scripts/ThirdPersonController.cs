@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 #endif
 using Cinemachine;
 using UnityEngine.Animations.Rigging;
+using TMPro;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -84,6 +85,9 @@ namespace Player
 		[Header("VFX_SFX")]
 		[SerializeField] ParticleSystem muzzle_flash_vfx_;
 
+		[Header("UI")]
+		[SerializeField] TMP_Text ammo_txt_;
+
 		// cinemachine
 		private float cinemachine_target_yaw_;
 		private float cinemachine_target_pitch_;
@@ -139,9 +143,11 @@ namespace Player
 			}
 			bullet_manager_ = FindObjectOfType<BulletManager>();
 
-			ammo_curr_ = ammo_mag_;
+			ammo_curr_ = ammo_curr_ > ammo_mag_ ? ammo_mag_ : ammo_curr_;
 
 			Init(); //IDamageable method
+
+			DoUpdateAmmoTxt();
 		}
 
 		private void Start()
@@ -221,8 +227,14 @@ namespace Player
 						// Animation
 						animator_.SetTrigger(anim_id_shoot_);
 
+						// VFX
 						muzzle_flash_vfx_.Play();
+						
+						// Logic
 						ammo_curr_--;
+
+						// UI
+						DoUpdateAmmoTxt();
 					}
                     else if (!is_reload_)
 					{
@@ -470,6 +482,7 @@ namespace Player
 				is_reload_ = true;
 				animator_.SetTrigger(anim_id_reload_);
 				animator_.SetLayerWeight(1, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
+				ammo_txt_.text = "Reloading...";
 			}
 		}
 
@@ -481,6 +494,13 @@ namespace Player
 											//25 - 30 = -5
 			ammo_curr_ += ammo_can_load;
 			is_reload_ = false;
+
+			DoUpdateAmmoTxt();
+		}
+
+		public void DoUpdateAmmoTxt()
+        {
+			ammo_txt_.text = ammo_curr_.ToString() + "/" + ammo_reserve_.ToString();
 		}
 
 		/// <summary>
