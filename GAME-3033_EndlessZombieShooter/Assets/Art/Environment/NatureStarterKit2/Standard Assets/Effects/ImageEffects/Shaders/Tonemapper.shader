@@ -1,7 +1,9 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "Hidden/Tonemapper" {
 	Properties {
+		_Contrast("Contrast", Range(0, 2)) = 1.25
+		_Brightness("Brightness", Range(0, 2)) = 0.8
+		_Saturation("Saturation", Range(0, 2)) = 0.35
+
 		_MainTex ("", 2D) = "black" {}
 		_SmallTex ("", 2D) = "grey" {}
 		_Curve ("", 2D) = "black" {}
@@ -20,9 +22,14 @@ Shader "Hidden/Tonemapper" {
 	sampler2D _SmallTex;
 	sampler2D _Curve;
 	
+	float _Contrast;
+	float _Brightness;
+	float _Saturation;
+
 	float4 _HdrParams;
 	float2 intensity;
 	float4 _MainTex_TexelSize;
+
 	float _AdaptionSpeed;
 	float _ExposureAdjustment;
 	float _RangeScale;
@@ -214,8 +221,20 @@ Shader "Hidden/Tonemapper" {
 		texColor *= _ExposureAdjustment;
 		float4 X = max(float4(0.0,0.0,0.0,0.0), texColor-0.004);
 		float4 retColor = (X*(6.2*X+.5))/(X*(6.2*X+1.7)+0.06);
-		return retColor*retColor;
+		float4 coef = { 0.3, 0.59, 0.11, 0.5 };
+		
+		//return retColor*retColor; // Old look before Shadowood
+		//float _Saturation = 0.35;
+		//float _Brightness = 0.8;
+		//float _Contrast = 1.25;
+
+	
+
+		//return lerp(  lerp(0.5, min(float4(1,1,1,1), max(float4(0,0,0,0),retColor*retColor)), _Contrast)*_Brightness, dot(coef.rgb, retColor*retColor) , 1-_Saturation);
+		return lerp(float4(0.5,0.5,0.5,1), retColor*retColor, _Contrast)*_Brightness;
 	}		
+
+	
 
 	float4 fragPhotographic(v2f i) : SV_Target
 	{

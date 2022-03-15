@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
  Shader "Hidden/Dof/DepthOfField34" {
 	Properties {
 		_MainTex ("Base", 2D) = "" {}

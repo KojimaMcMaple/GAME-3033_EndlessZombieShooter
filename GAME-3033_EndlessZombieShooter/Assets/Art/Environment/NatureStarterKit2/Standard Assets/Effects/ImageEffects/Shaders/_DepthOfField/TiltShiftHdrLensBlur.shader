@@ -1,6 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-
  Shader "Hidden/Dof/TiltShiftHdrLensBlur" {
 	Properties {
 		_MainTex ("-", 2D) = "" {}

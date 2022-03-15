@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "Hidden/FXAA Preset 2" {
 Properties {
 	_MainTex ("Base (RGB)", 2D) = "white" {}

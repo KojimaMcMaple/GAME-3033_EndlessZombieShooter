@@ -1,6 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-
 //
 // modified and adapted DLAA code based on Dmitry Andreev's
 // Directionally Localized Anti-Aliasing (DLAA)

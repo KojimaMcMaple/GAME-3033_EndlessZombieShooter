@@ -1,6 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-
 Shader "Hidden/PrepareSunShaftsBlur" {
 	Properties {
 		_MainTex ("Base", 2D) = "" {}

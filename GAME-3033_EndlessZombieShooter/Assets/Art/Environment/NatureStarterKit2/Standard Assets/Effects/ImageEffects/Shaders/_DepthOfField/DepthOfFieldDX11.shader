@@ -1,6 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-
 /*
 	DX11 Depth Of Field
 	pretty much just does bokeh texture splatting

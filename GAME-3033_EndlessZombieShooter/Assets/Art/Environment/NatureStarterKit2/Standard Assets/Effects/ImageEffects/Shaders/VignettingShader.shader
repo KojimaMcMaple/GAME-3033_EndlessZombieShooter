@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "Hidden/Vignetting" {
 	Properties {
 		_MainTex ("Base", 2D) = "white" {}
@@ -46,7 +44,7 @@ Shader "Hidden/Vignetting" {
 		half coordDot = dot (coords,coords);
 		half4 color = tex2D (_MainTex, uv);	 
 
-		float mask = 1.0 - coordDot * _Intensity; 
+		float mask = 1.0 - coordDot * _Intensity * 0.1; 
 		
 		half4 colorBlur = tex2D (_VignetteTex, i.uv2);
 		color = lerp (color, colorBlur, saturate (_Blur * coordDot));
