@@ -32,6 +32,7 @@ public class EnemyFieldOfVisionController : MonoBehaviour
             {
                 parent_controller_.SetTarget(other.gameObject);
                 parent_controller_.DoAggro();
+                gameObject.SetActive(false);
             }
         }
     }

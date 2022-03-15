@@ -19,12 +19,14 @@ public class BulletController : MonoBehaviour
     private Vector3 spawn_pos_;
     private Vector3 dir_;
     private BulletManager bullet_manager_;
+    private VfxManager vfx_manager_;
     private Rigidbody rb_;
     private float timer_ = 0f;
 
     private void Awake()
     {
         bullet_manager_ = GameObject.FindObjectOfType<BulletManager>();
+        vfx_manager_ = FindObjectOfType<VfxManager>();
         rb_ = GetComponent<Rigidbody>();
     }
 
@@ -84,10 +86,6 @@ public class BulletController : MonoBehaviour
     /// </summary>
     public void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "FieldOfVision")
-        {
-            return;
-        }
         IDamageable<int> other_interface = other.gameObject.GetComponent<IDamageable<int>>();
         if (other_interface != null)
         {
@@ -96,6 +94,7 @@ public class BulletController : MonoBehaviour
                 other_interface.ApplyDamage(damage_);
             }
         }
+        vfx_manager_.GetVfx(transform.position, -dir_, GlobalEnums.VfxType.HIT);
         bullet_manager_.ReturnBullet(this.gameObject, type_);
     }
 }

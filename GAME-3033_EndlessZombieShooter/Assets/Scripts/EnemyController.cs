@@ -14,30 +14,44 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour, IDamageable<int>
 {
     // BASE STATS
-    [SerializeField] protected int hp_ = 100;
+    [SerializeField] protected int hp_ = 50;
     [SerializeField] protected int score_ = 50;
     [SerializeField] protected float speed_ = 0.75f;
-    [SerializeField] protected float firerate_ = 0.47f;
-    [SerializeField] protected int collision_damage_ = 20;
-    protected float atk_countdown_ = 0.0f;
+    [Tooltip("Prevents applying damage twice in the same attack")]
+    [SerializeField] protected float hit_cooldown_ = 0.47f;
+    protected float hit_cooldown_delta_ = 0.0f;
+    [SerializeField] protected float atk_range_ = 1.5f;
+    [SerializeField] protected float flee_range_ = 1.0f; //should be smaller than nav_.stoppingDistance
+    [Tooltip("How long enemy should stay fleeing, prevents fleeing forever")]
+    [SerializeField] protected float flee_timer_max_ = 7.0f; //prevents fleeing forever, enemy has to attack
+    protected float flee_timer_ = 0f; //prevents fleeing forever, enemy has to attack
+    [SerializeField] protected int atk_damage_ = 10;
+    [SerializeField] protected float flinch_cooldown_ = 1.25f;
+    protected float flinch_cooldown_delta_ = 0.0f;
+    [SerializeField] protected float launched_recover_cooldown_ = 5.0f;
+    
     protected Vector3 start_pos_;
 
     // UNITY COMPONENTS
     protected Animator animator_;
     protected NavMeshAgent nav_;
+    protected Rigidbody rb_;
 
     // LOGIC
-    protected Transform fov_;
-    protected GlobalEnums.EnemyState state_ = GlobalEnums.EnemyState.IDLE;
-    protected GameObject target_;
-    protected bool is_atk_hitbox_active_ = false;
     protected GlobalEnums.ObjType type_ = GlobalEnums.ObjType.ENEMY;
+    protected GlobalEnums.EnemyState state_ = GlobalEnums.EnemyState.IDLE;
+    protected Transform fov_;
+    protected GameObject target_;
+    protected Vector3 flee_pos_;
+    protected bool has_flee_pos_ = false;
+    protected bool is_atk_hitbox_active_ = false;
+    protected bool is_atk_ = false;
+    protected bool is_stunned_ = false;
+    protected Coroutine launched_coroutine_ = null;
+    protected bool is_death_ = false;
 
     // MANAGERS
-    protected BulletManager bullet_manager_;
-    //protected ExplosionManager explode_manager_;
-    //protected FoodManager food_manager_;
-    //protected GameManager game_manager_;
+    protected VfxManager vfx_manager_;
 
     // VFX
     //protected VfxSpriteFlash flash_vfx_;
@@ -52,15 +66,12 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         start_pos_ = transform.position;
         animator_ = GetComponent<Animator>();
         nav_ = GetComponent<NavMeshAgent>();
-        //explode_manager_ =   GameObject.FindObjectOfType<ExplosionManager>();
-        //food_manager_ =     GameObject.FindObjectOfType<FoodManager>();
-        //game_manager_ =     GameObject.FindObjectOfType<GameManager>();
-        //flash_vfx_ = GetComponent<VfxSpriteFlash>();
+        rb_ = GetComponent<Rigidbody>();
         audio_source_ = GetComponent<AudioSource>();
         fov_ = transform.Find("FieldOfVision");
 
-        bullet_manager_ = GameObject.FindObjectOfType<BulletManager>();
-        atk_countdown_ = firerate_;
+        vfx_manager_ = FindObjectOfType<VfxManager>();
+        hit_cooldown_delta_ = hit_cooldown_;
 
         Init(); //IDamageable method
     }
@@ -94,6 +105,88 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     public virtual void DoAggro()
     {
         Debug.Log("> Base DoAggro");
+        //set target and state?
+    }
+
+    protected virtual void DoDeath()
+    {
+    }
+
+    protected virtual void DoFlinch(GlobalEnums.FlinchType flinch_mode = GlobalEnums.FlinchType.DEFAULT)
+    {
+        //animation?
+    }
+
+    public void DoLaunchedToAir(Vector3 src_pos, float force, int damage)
+    {
+        state_ = GlobalEnums.EnemyState.STUNNED;
+        is_stunned_ = true;
+
+        nav_.isStopped = true;
+        nav_.updatePosition = false;
+        nav_.updateRotation = false;
+        nav_.enabled = false;
+
+        rb_.isKinematic = false;
+
+        //animator_.applyRootMotion = false; //very important
+
+        float rand_height = Random.Range(3, 4.5f);
+        float rand_force = force * Random.Range(0.8f, 1.15f);
+        Vector3 dir = (new Vector3(transform.position.x, transform.position.y + rand_height, transform.position.z) - src_pos).normalized;
+        rb_.AddForce(dir * rand_force, ForceMode.Impulse);
+        rb_.AddTorque(dir * rand_force, ForceMode.Impulse);
+
+        ApplyDamage(damage, GlobalEnums.FlinchType.ABSOLUTE);
+
+        if (launched_coroutine_ != null)
+        {
+            StopCoroutine(launched_coroutine_);
+        }
+        launched_coroutine_ = StartCoroutine(TryLaunchedRecover());
+    }
+
+    public void DoEndLaunchedToAir()
+    {
+        nav_.enabled = true;
+        nav_.updatePosition = true;
+        nav_.updateRotation = true;
+        nav_.isStopped = false;
+        rb_.isKinematic = true;
+
+        if (health > 0)
+        {
+            is_stunned_ = false;
+            DoAggro();
+        }
+    }
+
+    public IEnumerator TryLaunchedRecover()
+    {
+        yield return new WaitForSeconds(launched_recover_cooldown_);
+        DoEndLaunchedToAir();
+    }
+
+    public bool HasReachedNavTarget() //http://answers.unity.com/answers/746157/view.html
+    {
+        if (!nav_.isOnNavMesh) //in case enemy is thrown off navmesh
+        {
+            //Debug.Log("> Wizard out of nav");
+            return true; //or return false ???
+        }
+
+        if (!nav_.pathPending)
+        {
+            if (nav_.remainingDistance <= nav_.stoppingDistance)
+            {
+                if (!nav_.hasPath || nav_.velocity.sqrMagnitude == 0f)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -102,6 +195,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     public void SetState(GlobalEnums.EnemyState value)
     {
         state_ = value;
+        Debug.Log(state_);
     }
 
     /// <summary>
@@ -151,6 +245,22 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     public void SetAtkHitboxInactive()
     {
         SetAtkHitboxActive(false);
+        is_atk_ = false;
+    }
+
+    public void DoDealDamageToIDamageable(IDamageable<int> other)
+    {
+        if (hit_cooldown_delta_ <= 0)
+        {
+            other.ApplyDamage(atk_damage_);
+            hit_cooldown_delta_ = hit_cooldown_; //prevents applying damage every frame
+        }
+    }
+
+    protected IEnumerator Despawn()
+    {
+        yield return new WaitForSeconds(8.0f);
+        this.gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -163,20 +273,31 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     }
     public int health { get; set; } //Health points
     public GlobalEnums.ObjType obj_type { get; set; } //Type of gameobject
-    public void ApplyDamage(int damage_value) //Deals damage to this object
+    public void ApplyDamage(int damage_value, GlobalEnums.FlinchType flinch_mode = GlobalEnums.FlinchType.DEFAULT) //Deals damage to this object
     {
-        DoAggro();
-        health -= damage_value;
-        //flash_vfx_.DoFlash();
-        audio_source_.PlayOneShot(damaged_sfx_);
-        if (health <= 0)
+        if (!is_death_)
         {
-            //explode_manager_.GetObj(this.transform.position, obj_type);
-            //food_manager_.GetObj(this.transform.position, (GlobalEnums.FoodType)Random.Range(0, (int)GlobalEnums.FoodType.NUM_OF_TYPE));
-            //game_manager_.IncrementScore(score_);
-            this.gameObject.SetActive(false);
+            DoAggro();
+            health -= damage_value;
+            if (health <= 0)
+            {
+                //explode_manager_.GetObj(this.transform.position, obj_type);
+                //game_manager_.IncrementScore(score_);
+                //this.gameObject.SetActive(false);
+                is_death_ = true;
+                if (state_ != GlobalEnums.EnemyState.DIE)
+                {
+                    DoDeath();
+                }
+            }
+            else
+            {
+                DoFlinch(flinch_mode);
+            }
         }
-        Debug.Log(">>> Enemy HP is " + health.ToString());
+        audio_source_.PlayOneShot(damaged_sfx_);
+        //Debug.Log(">>> Enemy HP is " + health.ToString());
     }
     public void HealDamage(int heal_value) { } //Adds health to object
+
 }

@@ -15,6 +15,6 @@ public interface IDamageable<T>
     void Init(); //Link vars to class vars
     T health { get; set; } //Health points
     GlobalEnums.ObjType obj_type { get; set; } //Type of gameobject
-    void ApplyDamage(T damage_value); //Deals damage to object
+    void ApplyDamage(T damage_value, GlobalEnums.FlinchType flinch_mode = GlobalEnums.FlinchType.DEFAULT ); //Deals damage to object
     void HealDamage(T heal_value); //Adds health to object
 }

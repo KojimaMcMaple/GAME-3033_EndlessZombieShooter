@@ -14,6 +14,10 @@ namespace Player
 		public bool sprint;
 		public bool is_aiming;
 		public bool is_shooting;
+		public bool is_reloading;
+		public bool is_ultima;
+
+		public bool pause;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -57,12 +61,27 @@ namespace Player
 		{
 			ShootInput(value.isPressed);
 		}
+
+		public void OnReload(InputValue value)
+		{
+			ReloadInput(value.isPressed);
+		}
+
+		public void OnUltima(InputValue value)
+		{
+			UltimaInput(value.isPressed);
+		}
+
+		public void OnPause(InputValue value)
+        {
+			PauseInput(value.isPressed);
+        }
 #else
 	// old input sys if we do decide to have it (most likely wont)...
 #endif
 
 
-		public void MoveInput(Vector2 newMoveDirection)
+        public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
 		} 
@@ -87,10 +106,25 @@ namespace Player
 			is_aiming = newAimState;
 		}
 
-		public void ShootInput(bool newAimState)
+		public void ShootInput(bool newShootState)
 		{
-			is_shooting = newAimState;
+			is_shooting = newShootState;
 		}
+
+		public void ReloadInput(bool newReloadState)
+		{
+			is_reloading = newReloadState;
+		}
+		
+		public void UltimaInput(bool newUltimaState)
+		{
+			is_ultima = newUltimaState;
+		}
+
+		public void PauseInput(bool newPauseState)
+        {
+			pause = newPauseState;
+        }
 
 #if !UNITY_IOS || !UNITY_ANDROID
 

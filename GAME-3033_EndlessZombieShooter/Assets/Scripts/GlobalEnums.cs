@@ -8,38 +8,41 @@
 /// </summary>
 public static class GlobalEnums
 {
-    public enum BulletDir
-    {
-        DEFAULT,
-        LEFT,
-        RIGHT,
-        UP,
-        DOWN
-    };
-
     public enum ObjType
     {
         DEFAULT,
         PLAYER,
         ENEMY,
         BOSS,
-        NUM_OF_TYPE
+        NUM_OF_TYPES
     };
 
-    public enum FoodType
+    public enum FlinchType
+    {
+        NO_FLINCH = -1,
+        DEFAULT,
+        ABSOLUTE,
+        NUM_OF_TYPES
+    };
+
+    public enum VfxType
     {
         DEFAULT,
-        LOW,
-        HIGH,
-        BEYOND,
-        NUM_OF_TYPE
+        HIT,
+        ULTIMA,
+        ULTIMA2, //no rotation
+        NUM_OF_TYPES
     };
 
     public enum EnemyState
     {
         IDLE,
         MOVE_TO_TARGET,
-        ATTACK
+        ATTACK,
+        FLEE,
+        STUNNED,
+        DIE,
+        NUM_OF_STATES
     };
 
     public enum MovingPlatformDir
