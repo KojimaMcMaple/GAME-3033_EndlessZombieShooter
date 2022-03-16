@@ -94,13 +94,15 @@ namespace Player
 		[SerializeField] private int ultima_damage_ = 40;
 
 		[Header("VFX SFX")]
-		[SerializeField] private ParticleSystem muzzle_flash_vfx_;
-		[SerializeField] private List<AudioClip> shoot_sfx_ = new List<AudioClip>();
 		[SerializeField] private ParticleSystem jump_vfx1_;
 		[SerializeField] private ParticleSystem jump_vfx2_;
 		private Coroutine jump_vfx_coroutine_ = null;
 		[SerializeField] private AudioClip jump_sfx_;
-		[SerializeField] private AudioClip damaged_sfx_;
+		[SerializeField] private ParticleSystem muzzle_flash_vfx_;
+		[SerializeField] private ParticleSystem casing_vfx_;
+		[SerializeField] private List<AudioClip> shoot_sfx_ = new List<AudioClip>();
+		[SerializeField] private AudioClip reload_sfx_;
+		[SerializeField] private List<AudioClip> damaged_sfx_ = new List<AudioClip>();
 		private AudioSource audio_;
 
 		[Header("UI")]
@@ -499,6 +501,7 @@ namespace Player
 						muzzle_flash_vfx_.Play();
 						DoCamShake(aim_cam_, shoot_cam_shake_, shoot_cam_shake_time_);
 						audio_.PlayOneShot(shoot_sfx_[Random.Range(0, shoot_sfx_.Count)]); //SFX
+						casing_vfx_.Play();
 
 						// Logic
 						ammo_curr_--;
@@ -617,6 +620,8 @@ namespace Player
 			//animator_.SetLayerWeight(upper_body_layer_idx_, Mathf.Lerp(animator_.GetLayerWeight(1), 1f, Time.deltaTime * 10f)); //upper body
 			animator_.SetLayerWeight(upper_body_layer_idx_, 1); //upper body
 			ammo_txt_.text = "Reloading...";
+
+			audio_.PlayOneShot(reload_sfx_); //SFX
 		}
 
 		public void DoEndReload()
@@ -736,7 +741,8 @@ namespace Player
 			health = health < 0 ? 0 : health; //Clamps health so it doesn't go below 0
 											  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
 											  //flash_vfx_.DoFlash();
-			audio_.PlayOneShot(damaged_sfx_);
+			audio_.PlayOneShot(damaged_sfx_[Random.Range(0, damaged_sfx_.Count)]); //SFX
+
 			if (health == 0)
 			{
 				is_dead_ = true;

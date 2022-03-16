@@ -68,3 +68,11 @@ GAME-3033_EndlessZombieShooter/Assets/3DGamekit/Scenes/GamePlay/Level2/LightingD
 GAME-3033_EndlessZombieShooter/Assets/3DGamekit/Scenes/GamePlay/Level2/LightingData.asset.meta
 GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/Scenes/Article/LightingTutorialOptimal/LightingData.asset
 GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/Scenes/Article/LightingTutorialOptimal/LightingData.asset.meta
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMossAlbedoTerrainMossNormals(5.000,5.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.000.terrainlayer
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMossAlbedoTerrainMossNormals(5.000,5.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.000.terrainlayer.meta
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMudDryAlbedoTerrainMudDryNormals(2.000,2.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.000.terrainlayer
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMudDryAlbedoTerrainMudDryNormals(2.000,2.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.000.terrainlayer.meta
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMudWetAlbedoTerrainMudWedNormals(5.000,5.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.610.terrainlayer
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainMudWetAlbedoTerrainMudWedNormals(5.000,5.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.610.terrainlayer.meta
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainRockAlbedoTerrainRockNormals(2.000,2.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.300.terrainlayer
+GAME-3033_EndlessZombieShooter/Assets/Unity Technologies/LightingOptimisationTutorial/_TerrainAutoUpgrade/layer_TerrainRockAlbedoTerrainRockNormals(2.000,2.000)(0.000,0.000)(0.000,0.000,0.000),0.000,0.300.terrainlayer.meta
