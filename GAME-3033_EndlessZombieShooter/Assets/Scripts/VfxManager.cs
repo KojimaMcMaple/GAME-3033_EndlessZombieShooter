@@ -111,8 +111,9 @@ public class VfxManager : MonoBehaviour
     /// <param name="position"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public GameObject GetVfx(Vector3 position,
-                                GlobalEnums.VfxType type = GlobalEnums.VfxType.HIT)
+    public GameObject GetVfx(GlobalEnums.VfxType type,
+                                Vector3 position,
+                                Vector3 fwd_dir)
     {
         //Debug.Log(">>> Spawning Vfx...");
         GameObject temp = null;
@@ -142,6 +143,7 @@ public class VfxManager : MonoBehaviour
                 break;
         }
         temp.transform.position = position;
+        temp.transform.rotation = Quaternion.LookRotation(fwd_dir, Vector3.up);
         temp.SetActive(true);
         temp.GetComponent<VfxController>().DoSpawn();
         if (temp2 != null)
@@ -150,16 +152,6 @@ public class VfxManager : MonoBehaviour
             temp2.SetActive(true);
             temp2.GetComponent<VfxController>().DoSpawn();
         }
-        return temp;
-    }
-
-    public GameObject GetVfx(Vector3 position,
-                                Vector3 fwd_dir,
-                                GlobalEnums.VfxType type = GlobalEnums.VfxType.HIT)
-    {
-        GameObject temp = null;
-        temp = GetVfx(position, type);
-        temp.transform.rotation = Quaternion.LookRotation(fwd_dir, Vector3.up);
         return temp;
     }
 

@@ -6,6 +6,7 @@ using Cinemachine;
 using UnityEngine.Animations.Rigging;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -94,11 +95,12 @@ namespace Player
 
 		[Header("VFX SFX")]
 		[SerializeField] private ParticleSystem muzzle_flash_vfx_;
+		[SerializeField] private List<AudioClip> shoot_sfx_ = new List<AudioClip>();
 		[SerializeField] private ParticleSystem jump_vfx1_;
 		[SerializeField] private ParticleSystem jump_vfx2_;
 		private Coroutine jump_vfx_coroutine_ = null;
-		[SerializeField] private AudioClip damaged_sfx_;
 		[SerializeField] private AudioClip jump_sfx_;
+		[SerializeField] private AudioClip damaged_sfx_;
 		private AudioSource audio_;
 
 		[Header("UI")]
@@ -430,15 +432,13 @@ namespace Player
 				animator_.SetLayerWeight(lower_body_layer_idx_, 0f); //disable aiming lower body
 			}
 
-			// VFX
+			// VFX - SFX
 			if (jump_vfx_coroutine_ != null)
 			{
 				StopCoroutine(jump_vfx_coroutine_);
 			}
 			jump_vfx_coroutine_ = StartCoroutine(PlayJumpVfx());
-
-			// SFX
-			audio_.PlayOneShot(jump_sfx_);
+			audio_.PlayOneShot(jump_sfx_); //SFX
 		}
 
 		private void CheckInputAimAndShoot()
@@ -495,9 +495,10 @@ namespace Player
 						// Animation
 						animator_.SetTrigger(anim_id_shoot_);
 
-						// VFX
+						// VFX - SFX
 						muzzle_flash_vfx_.Play();
 						DoCamShake(aim_cam_, shoot_cam_shake_, shoot_cam_shake_time_);
+						audio_.PlayOneShot(shoot_sfx_[Random.Range(0, shoot_sfx_.Count)]); //SFX
 
 						// Logic
 						ammo_curr_--;
@@ -570,15 +571,13 @@ namespace Player
 
 				animator_.SetTrigger(anim_id_ultima_);
 
-				// VFX
+				// VFX - SFX
 				if (jump_vfx_coroutine_ != null)
 				{
 					StopCoroutine(jump_vfx_coroutine_);
 				}
 				jump_vfx_coroutine_ = StartCoroutine(PlayJumpVfx());
-
-				// SFX
-				audio_.PlayOneShot(jump_sfx_);
+				audio_.PlayOneShot(jump_sfx_); //SFX
 
 				input_.is_ultima = false;
 				zoom_cam_.gameObject.SetActive(true);
@@ -649,7 +648,7 @@ namespace Player
 			//Time.timeScale = 0;
 			CheckForAoEHits();
 
-			vfx_manager_.GetVfx(transform.position, transform.forward, GlobalEnums.VfxType.ULTIMA);
+			vfx_manager_.GetVfx(GlobalEnums.VfxType.ULTIMA, transform.position, transform.forward);
 			DoCamShake(zoom_cam_, ultima_cam_shake_, ultima_cam_shake_time_);
 		}
 

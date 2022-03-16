@@ -1,5 +1,5 @@
 {
-    "name": "StarterAssets",
+    "name": "ActionMappings",
     "maps": [
         {
             "name": "Player",
@@ -54,6 +54,24 @@
                     "name": "Shoot",
                     "type": "Button",
                     "id": "803c49cf-adcb-4363-9284-7436f8543c3d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Reload",
+                    "type": "Button",
+                    "id": "174c2d33-3b25-4c20-a618-387e3fa22e86",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Ultima",
+                    "type": "Button",
+                    "id": "002151b3-4201-4009-b074-1260b709d5b4",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -278,6 +296,50 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "281283a2-6429-4f16-91da-6cec99f1b67c",
+                    "path": "<Keyboard>/g",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Ultima",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "21b73610-492e-4a50-a575-183ff705f9ce",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Ultima",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c63943cd-4d5f-4425-978a-537722ad9c8e",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Reload",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eeac0f6a-c924-4dca-a7b2-eb68028df530",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Reload",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

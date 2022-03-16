@@ -15,7 +15,7 @@ public class BulletController : MonoBehaviour
     [SerializeField] private GlobalEnums.ObjType type_ = GlobalEnums.ObjType.ENEMY; //compares with hit obj, determines which pool to return to
     [SerializeField] private float speed_ = 10f;
     [SerializeField] private int damage_ = 10;
-    [SerializeField] private float despawn_time_ = 3f;
+    [SerializeField] private float despawn_time_ = 5f;
     private Vector3 spawn_pos_;
     private Vector3 dir_;
     private BulletManager bullet_manager_;
@@ -86,6 +86,17 @@ public class BulletController : MonoBehaviour
     /// </summary>
     public void OnTriggerEnter(Collider other)
     {
+        rb_.velocity = Vector3.zero;
+
+        if (Physics.Raycast(transform.position + (-dir_ * 1.0f), dir_, out RaycastHit hit, 1.0f)) //fix for vfx sunk into 
+        {
+            vfx_manager_.GetVfx(GlobalEnums.VfxType.HIT, hit.point, -dir_);
+        }
+        else
+        {
+            vfx_manager_.GetVfx(GlobalEnums.VfxType.HIT, transform.position, -dir_);
+        }
+
         IDamageable<int> other_interface = other.gameObject.GetComponent<IDamageable<int>>();
         if (other_interface != null)
         {
@@ -94,7 +105,7 @@ public class BulletController : MonoBehaviour
                 other_interface.ApplyDamage(damage_);
             }
         }
-        vfx_manager_.GetVfx(transform.position, -dir_, GlobalEnums.VfxType.HIT);
+
         bullet_manager_.ReturnBullet(this.gameObject, type_);
     }
 }
