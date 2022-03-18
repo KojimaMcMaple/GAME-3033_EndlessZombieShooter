@@ -11,6 +11,7 @@ TagManager:
   - Light1
   - Light2
   - Alter
+  - CinemachineTarget
   layers:
   - Default
   - TransparentFX
@@ -29,9 +30,9 @@ TagManager:
   - 
   - 
   - Player
-  - 
-  - 
-  - 
+  - Enemy
+  - PlayerBullet
+  - EnemyBullet
   - 
   - 
   - 

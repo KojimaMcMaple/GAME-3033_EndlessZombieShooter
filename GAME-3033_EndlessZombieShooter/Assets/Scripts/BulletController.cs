@@ -91,6 +91,7 @@ public class BulletController : MonoBehaviour
         if (Physics.Raycast(transform.position + (-dir_ * 1.0f), dir_, out RaycastHit hit, 1.0f)) //fix for vfx sunk into 
         {
             vfx_manager_.GetVfx(GlobalEnums.VfxType.HIT, hit.point, -dir_);
+            Debug.Log(hit.transform.gameObject.layer);
         }
         else
         {
