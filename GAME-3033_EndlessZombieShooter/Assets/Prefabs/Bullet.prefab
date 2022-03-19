@@ -184,7 +184,7 @@ MonoBehaviour:
   type_: 1
   speed_: 35
   damage_: 20
-  despawn_time_: 5
+  despawn_time_: 4
 --- !u!54 &4569616169367612433
 Rigidbody:
   m_ObjectHideFlags: 0

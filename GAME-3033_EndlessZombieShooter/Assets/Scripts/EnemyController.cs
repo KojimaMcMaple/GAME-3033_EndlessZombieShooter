@@ -53,12 +53,9 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     // MANAGERS
     protected VfxManager vfx_manager_;
 
-    // VFX
-    //protected VfxSpriteFlash flash_vfx_;
-
     // SFX
-    [SerializeField] protected AudioClip attack_sfx_;
-    [SerializeField] protected AudioClip damaged_sfx_;
+    [SerializeField] protected List<AudioClip> attack_sfx_ = new List<AudioClip>();
+    [SerializeField] protected List<AudioClip> damaged_sfx_ = new List<AudioClip>();
     protected AudioSource audio_source_;
 
     protected void DoBaseInit()
@@ -225,18 +222,18 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     /// <summary>
     /// Mutator for private variable
     /// </summary>
-    public void SetAtkHitboxActive(bool value)
+    public void SetAtkHitboxActive()
     {
-        is_atk_hitbox_active_ = value;
+        SetAtkHitboxActive(true);
+        audio_source_.PlayOneShot(attack_sfx_[Random.Range(0, attack_sfx_.Count)]);
     }
 
     /// <summary>
     /// Mutator for private variable
     /// </summary>
-    public void SetAtkHitboxActive()
+    public void SetAtkHitboxActive(bool value)
     {
-        SetAtkHitboxActive(true);
-        audio_source_.PlayOneShot(attack_sfx_);
+        is_atk_hitbox_active_ = value;
     }
 
     /// <summary>
@@ -295,7 +292,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
                 DoFlinch(flinch_mode);
             }
         }
-        audio_source_.PlayOneShot(damaged_sfx_);
+        audio_source_.PlayOneShot(damaged_sfx_[Random.Range(0, damaged_sfx_.Count)]); //SFX
         //Debug.Log(">>> Enemy HP is " + health.ToString());
     }
     public void HealDamage(int heal_value) { } //Adds health to object

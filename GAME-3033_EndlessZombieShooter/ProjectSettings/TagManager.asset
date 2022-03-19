@@ -4,14 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - NavAgent
-  - Emissive_Inner
-  - Emissive_Outer
-  - Emissive_Guardian
-  - Light1
-  - Light2
-  - Alter
+  - FlythroughCam
   - CinemachineTarget
+  - FieldOfVision
   layers:
   - Default
   - TransparentFX
@@ -21,30 +16,30 @@ TagManager:
   - UI
   - 
   - 
-  - ReflProbesAndPlanarOnly
-  - PlanarAndCameraOnly
-  - CameraOnly
-  - ReflProbesAndCameraOnly
-  - ReflProbesOnly
-  - Hidden
-  - 
-  - 
+  - Skybox
   - Player
+  - PostProcessing
+  - SetDressing
+  - 
+  - 
+  - Vehicles
+  - Navmesh
+  - Environment
+  - Characters
+  - Vegetation
+  - Effects
+  - Ragdoll
+  - WaterGeometry
+  - Terrain
   - Enemy
-  - PlayerBullet
-  - EnemyBullet
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Cameras
+  - Props
+  - Avoid
+  - CameraCollider
+  - Collider
+  - Checkpoint
+  - DoNotDraw
+  - Level
   m_SortingLayers:
   - name: Default
     uniqueID: 0

@@ -101,6 +101,7 @@ namespace Player
 		[SerializeField] private ParticleSystem muzzle_flash_vfx_;
 		[SerializeField] private ParticleSystem casing_vfx_;
 		[SerializeField] private List<AudioClip> shoot_sfx_ = new List<AudioClip>();
+		[SerializeField] private AudioClip empty_mag_sfx_;
 		[SerializeField] private AudioClip reload_sfx_;
 		[SerializeField] private List<AudioClip> damaged_sfx_ = new List<AudioClip>();
 		private AudioSource audio_;
@@ -508,6 +509,11 @@ namespace Player
 
 						// UI
 						DoUpdateAmmoTxt();
+					}
+                    else if (ammo_reserve_ <= 0)
+                    {
+						audio_.PlayOneShot(empty_mag_sfx_); //SFX
+						input_.is_shooting = false; //kill input to prevent shooting when not intending to
 					}
 					else if (!is_reload_)
 					{
