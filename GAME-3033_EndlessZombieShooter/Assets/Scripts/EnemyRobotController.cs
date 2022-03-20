@@ -5,9 +5,14 @@ using UnityEngine.AI;
 
 public class EnemyRobotController : EnemyController
 {
+    [Header("Robot Controller")]
+    [SerializeField] private float fov_half_angle_ = 39.0f;
     [SerializeField] private ParticleSystem atk_indicator_vfx_;
+    private int anim_id_can_move_;
     private int anim_id_speed_;
     private int anim_id_atk1_;
+    private int anim_id_flinch_;
+    private int anim_id_die_;
 
     void Awake()
     {
@@ -27,6 +32,7 @@ public class EnemyRobotController : EnemyController
                 MoveToTarget();
                 break;
             case GlobalEnums.EnemyState.ATTACK:
+                DoReorient();
                 DoAttack();
                 break;
             case GlobalEnums.EnemyState.STUNNED:
@@ -55,8 +61,11 @@ public class EnemyRobotController : EnemyController
     /// </summary>
     private void AssignAnimationIDs()
     {
+        anim_id_can_move_ = Animator.StringToHash("CanMove");
         anim_id_speed_ = Animator.StringToHash("Speed");
         anim_id_atk1_ = Animator.StringToHash("Atk1");
+        anim_id_flinch_ = Animator.StringToHash("Flinch");
+        anim_id_die_ = Animator.StringToHash("Die");
     }
 
     protected override void DoAttack()
@@ -67,7 +76,7 @@ public class EnemyRobotController : EnemyController
         }
         else if(!is_atk_)
         {
-            animator_.SetBool(anim_id_atk1_, true);
+            animator_.SetTrigger(anim_id_atk1_);
             is_atk_ = true;
         }
     }
@@ -81,7 +90,7 @@ public class EnemyRobotController : EnemyController
         {
             return;
         }
-        Debug.Log("> Metalon DoAggro");
+        Debug.Log("> Robot DoAggro");
         if (target_ == null)
         {
             SetTarget(FindObjectOfType<Player.ThirdPersonController>().gameObject); //should be set by EnemyFieldOfVisionController, but this is safer, and the function has more utility this way
@@ -98,6 +107,7 @@ public class EnemyRobotController : EnemyController
         if (flinch_mode == GlobalEnums.FlinchType.ABSOLUTE || flinch_cooldown_delta_ <= 0)
         {
             flinch_cooldown_delta_ = flinch_cooldown_;
+            animator_.SetTrigger(anim_id_flinch_);
         }
     }
 
@@ -109,10 +119,18 @@ public class EnemyRobotController : EnemyController
             {
                 nav_.isStopped = true;
             }
+            animator_.SetTrigger(anim_id_die_);
         }
         SetState(GlobalEnums.EnemyState.DIE);
         StartCoroutine(Despawn());
     }
+
+    protected override void DoSetCanMove(bool value)
+    {
+        can_move_ = value;
+        animator_.SetBool(anim_id_can_move_, value);
+    }
+
     private void Move()
     {
         
@@ -139,7 +157,7 @@ public class EnemyRobotController : EnemyController
         {
             SetState(GlobalEnums.EnemyState.ATTACK);
         }
-        else
+        else if (can_move_)
         {
             Player.ThirdPersonController player_controller = target_.GetComponent<Player.ThirdPersonController>();
             if (player_controller != null)
@@ -165,14 +183,33 @@ public class EnemyRobotController : EnemyController
         //}
     }
 
+    private void DoReorient()
+    {
+        if (target_ != null)
+        {
+            //Vector3 target_center = new Vector3(target_.transform.position.x,
+            //                                    transform.position.y, //
+            //                                    target_.transform.position.z);
+            Vector3 self_to_target = target_.transform.position - transform.position;
+            if (Vector3.Angle(transform.forward, self_to_target) > fov_half_angle_)
+            {
+                self_to_target.y = 0;
+                Quaternion rotation = Quaternion.LookRotation(self_to_target);
+                transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * 10.0f);
+            }
+        }
+    }
+
     public void DoStartAtkHitbox()
     {
+        DoSetCanMove(false);
         SetAtkHitboxActive();
         atk_indicator_vfx_.Play();
     }
 
     public void DoEndAtkHitbox()
     {
+        DoSetCanMove(true);
         SetAtkHitboxInactive();
         //atk_indicator_vfx_.Stop();
     }

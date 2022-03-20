@@ -42,6 +42,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     protected GlobalEnums.EnemyState state_ = GlobalEnums.EnemyState.IDLE;
     protected Transform fov_;
     protected GameObject target_;
+    protected bool can_move_ = true;
     protected Vector3 flee_pos_;
     protected bool has_flee_pos_ = false;
     protected bool is_atk_hitbox_active_ = false;
@@ -114,12 +115,21 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         //animation?
     }
 
+    protected virtual void DoSetCanMove(bool value)
+    {
+        can_move_ = value;
+    }
+
     public void DoLaunchedToAir(Vector3 src_pos, float force, int damage)
     {
         state_ = GlobalEnums.EnemyState.STUNNED;
         is_stunned_ = true;
 
-        nav_.isStopped = true;
+        DoSetCanMove(false);
+        if (nav_.isOnNavMesh) //in case enemy is thrown off navmesh
+        {
+            nav_.isStopped = true;
+        }
         nav_.updatePosition = false;
         nav_.updateRotation = false;
         nav_.enabled = false;
@@ -132,7 +142,8 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         float rand_force = force * Random.Range(0.8f, 1.15f);
         Vector3 dir = (new Vector3(transform.position.x, transform.position.y + rand_height, transform.position.z) - src_pos).normalized;
         rb_.AddForce(dir * rand_force, ForceMode.Impulse);
-        rb_.AddTorque(dir * rand_force, ForceMode.Impulse);
+        rb_.AddTorque(new Vector3(0f,0f,-1.0f) * rand_force, ForceMode.Impulse);
+        //rb_.AddTorque(dir * rand_force, ForceMode.Impulse);
 
         ApplyDamage(damage, GlobalEnums.FlinchType.ABSOLUTE);
 
@@ -150,6 +161,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         nav_.updateRotation = true;
         nav_.isStopped = false;
         rb_.isKinematic = true;
+        DoSetCanMove(true);
 
         if (health > 0)
         {

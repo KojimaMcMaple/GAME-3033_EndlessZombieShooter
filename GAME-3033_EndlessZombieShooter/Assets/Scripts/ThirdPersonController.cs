@@ -330,7 +330,6 @@ namespace Player
 				}
 			}
 
-
 			Vector3 targetDirection = Quaternion.Euler(0.0f, target_rotation_, 0.0f) * Vector3.forward;
 
 			// move the player
@@ -566,6 +565,8 @@ namespace Player
 
 		private void CheckInputUltima()
 		{
+			if (is_reload_) { return; }
+
 			if (input_.is_ultima)
 			{
 				Debug.Log("> Do Ultima");
