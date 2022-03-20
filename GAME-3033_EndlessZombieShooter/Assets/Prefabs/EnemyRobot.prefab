@@ -1068,7 +1068,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1623105590129940294}
-  m_Layer: 0
+  m_Layer: 23
   m_Name: Armature_Robot1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1734,6 +1734,8 @@ MonoBehaviour:
   atk_damage_: 10
   flinch_cooldown_: 1.25
   launched_recover_cooldown_: 5
+  rig_: {fileID: 0}
+  hip_rb_: {fileID: 0}
   attack_sfx_:
   - {fileID: 8300000, guid: 82a66f5d6bc124ba295cbf45801a1340, type: 3}
   - {fileID: 8300000, guid: cfb4d85fb20d24d8f86ba8a66b6949c5, type: 3}
@@ -2399,9 +2401,9 @@ GameObject:
   - component: {fileID: 425826676781803066}
   - component: {fileID: 2171793233651839324}
   - component: {fileID: 4249534810629080886}
-  m_Layer: 0
+  m_Layer: 23
   m_Name: AtkHitBox
-  m_TagString: Untagged
+  m_TagString: AtkHitBox
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

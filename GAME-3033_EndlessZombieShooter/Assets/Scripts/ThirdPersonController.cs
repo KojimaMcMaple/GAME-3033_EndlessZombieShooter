@@ -82,7 +82,8 @@ namespace Player
 		[SerializeField] private CinemachineVirtualCamera zoom_cam_;
 		[SerializeField] private float ultima_cam_shake_;
 		[SerializeField] private float ultima_cam_shake_time_;
-		[SerializeField] private float aoe_radius_ = 4.0f;
+		[SerializeField] private float aoe_force_ = 100.0f; //33.5f
+		[SerializeField] private float aoe_radius_ = 7.0f;
 
 		[Header("Gameplay Stats")]
 		[SerializeField] private int max_hp_ = 100;
@@ -672,7 +673,7 @@ namespace Player
 				EnemyController ec = c.GetComponent<EnemyController>();
 				if (ec != null)
 				{
-					ec.DoLaunchedToAir(transform.position, 33.5f, ultima_damage_);
+					ec.DoLaunchedToAir(transform.position, aoe_force_, ultima_damage_);
 				}
 			}
 		}

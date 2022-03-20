@@ -56,6 +56,11 @@ public class EnemyRobotController : EnemyController
         animator_.SetFloat(anim_id_speed_, nav_.velocity.magnitude);
     }
 
+    private void FixedUpdate()
+    {
+        //DoBaseFixedUpdate();
+    }
+
     /// <summary>
     /// Convert string to int for anim IDs
     /// </summary>
@@ -200,14 +205,14 @@ public class EnemyRobotController : EnemyController
         }
     }
 
-    public void DoStartAtkHitbox()
+    public override void DoStartAtkHitbox()
     {
         DoSetCanMove(false);
         SetAtkHitboxActive();
         atk_indicator_vfx_.Play();
     }
 
-    public void DoEndAtkHitbox()
+    public override void DoEndAtkHitbox()
     {
         DoSetCanMove(true);
         SetAtkHitboxInactive();

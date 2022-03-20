@@ -29,13 +29,17 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     [SerializeField] protected float flinch_cooldown_ = 1.25f;
     protected float flinch_cooldown_delta_ = 0.0f;
     [SerializeField] protected float launched_recover_cooldown_ = 5.0f;
-    
     protected Vector3 start_pos_;
 
     // UNITY COMPONENTS
     protected Animator animator_;
     protected NavMeshAgent nav_;
     protected Rigidbody rb_;
+    protected Collider collider_;
+    [SerializeField] protected GameObject rig_;
+    [SerializeField] protected Rigidbody hip_rb_;
+    protected List<Collider> ragdoll_cols_ = new List<Collider>();
+    protected List<Rigidbody> ragdoll_rbs_ = new List<Rigidbody>();
 
     // LOGIC
     protected GlobalEnums.ObjType type_ = GlobalEnums.ObjType.ENEMY;
@@ -65,11 +69,35 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         animator_ = GetComponent<Animator>();
         nav_ = GetComponent<NavMeshAgent>();
         rb_ = GetComponent<Rigidbody>();
+        collider_ = GetComponent<Collider>();
         audio_source_ = GetComponent<AudioSource>();
-        fov_ = transform.Find("FieldOfVision");
+        fov_ = transform.Find("EnemyFoV");
 
         vfx_manager_ = FindObjectOfType<VfxManager>();
         hit_cooldown_delta_ = hit_cooldown_;
+
+        // RAGDOLL
+        if (rig_ != null)
+        {
+            Collider[] cols = rig_.GetComponentsInChildren<Collider>();
+            foreach (Collider item in cols)
+            {
+                if (!item.CompareTag("FieldOfVision") && !!item.CompareTag("AtkHitBox"))
+                {
+                    ragdoll_cols_.Add(item);
+                }
+            }
+
+            Rigidbody[] rbs = rig_.GetComponentsInChildren<Rigidbody>();
+            foreach (Rigidbody item in rbs)
+            {
+                if (!item.CompareTag("FieldOfVision") && !!item.CompareTag("AtkHitBox"))
+                {
+                    ragdoll_rbs_.Add(item);
+                }
+            }
+            SetRagdollMode(false);
+        }
 
         Init(); //IDamageable method
     }
@@ -87,6 +115,14 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
                 break;
             default:
                 break;
+        }
+    }
+
+    protected void DoBaseFixedUpdate()
+    {
+        if (!animator_.enabled)
+        {
+            transform.position = hip_rb_.position;
         }
     }
 
@@ -120,6 +156,35 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         can_move_ = value;
     }
 
+    public virtual void DoStartAtkHitbox()
+    {
+        DoSetCanMove(false);
+        SetAtkHitboxActive();
+        //atk_indicator_vfx_.Play();
+    }
+
+    public virtual void DoEndAtkHitbox()
+    {
+        DoSetCanMove(true);
+        SetAtkHitboxInactive();
+        //atk_indicator_vfx_.Stop();
+    }
+
+    public virtual void SetRagdollMode(bool value)
+    {
+        animator_.enabled = !value;
+        foreach (Collider item in ragdoll_cols_)
+        {
+            item.enabled = value;
+        }
+        foreach (Rigidbody item in ragdoll_rbs_)
+        {
+            item.isKinematic = !value;
+        }
+        //collider_.enabled = !value;
+        rb_.isKinematic = !value;
+    }
+
     public void DoLaunchedToAir(Vector3 src_pos, float force, int damage)
     {
         state_ = GlobalEnums.EnemyState.STUNNED;
@@ -133,7 +198,6 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         nav_.updatePosition = false;
         nav_.updateRotation = false;
         nav_.enabled = false;
-
         rb_.isKinematic = false;
 
         //animator_.applyRootMotion = false; //very important
@@ -141,9 +205,19 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         float rand_height = Random.Range(3, 4.5f);
         float rand_force = force * Random.Range(0.8f, 1.15f);
         Vector3 dir = (new Vector3(transform.position.x, transform.position.y + rand_height, transform.position.z) - src_pos).normalized;
-        rb_.AddForce(dir * rand_force, ForceMode.Impulse);
-        rb_.AddTorque(new Vector3(0f,0f,-1.0f) * rand_force, ForceMode.Impulse);
-        //rb_.AddTorque(dir * rand_force, ForceMode.Impulse);
+        if (rig_ != null) //has ragdoll
+        {
+            SetRagdollMode(true);
+            rb_.AddForce(dir * rand_force, ForceMode.Impulse);
+            //rb_.AddTorque(new Vector3(0f, 0f, -1.0f) * rand_force, ForceMode.Impulse);
+            //hip_rb_.AddForce(dir * rand_force, ForceMode.Impulse);
+        }
+        else //no ragdoll
+        {
+            rb_.AddForce(dir * rand_force, ForceMode.Impulse);
+            rb_.AddTorque(new Vector3(0f, 0f, -1.0f) * rand_force, ForceMode.Impulse);
+            //rb_.AddTorque(dir * rand_force, ForceMode.Impulse);
+        }
 
         ApplyDamage(damage, GlobalEnums.FlinchType.ABSOLUTE);
 
@@ -156,19 +230,33 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
 
     public void DoEndLaunchedToAir()
     {
-        nav_.enabled = true;
-        nav_.updatePosition = true;
-        nav_.updateRotation = true;
-        nav_.isStopped = false;
-        rb_.isKinematic = true;
-        DoSetCanMove(true);
-
         if (health > 0)
         {
+            if (rig_ != null) //has ragdoll
+            {
+                SetRagdollMode(false);
+            }
+
+            nav_.enabled = true;
+            nav_.updatePosition = true;
+            nav_.updateRotation = true;
+            nav_.isStopped = false;
+            rb_.isKinematic = true;
+            DoSetCanMove(true);
+
             is_stunned_ = false;
             DoAggro();
         }
     }
+
+    //public IEnumerator TryLaunchRagdoll(Vector3 force)
+    //{
+    //    yield return new WaitForSeconds(0.5f);
+    //    foreach (Rigidbody item in ragdoll_rbs_)
+    //    {
+    //        item.AddForce(force, ForceMode.Impulse);
+    //    }
+    //}
 
     public IEnumerator TryLaunchedRecover()
     {
