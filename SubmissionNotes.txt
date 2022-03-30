@@ -1,0 +1,1 @@
+I've already implemented IDamageable a few weeks ago
