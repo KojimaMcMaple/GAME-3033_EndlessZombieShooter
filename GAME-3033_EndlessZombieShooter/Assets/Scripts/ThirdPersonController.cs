@@ -7,6 +7,7 @@ using UnityEngine.Animations.Rigging;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -93,6 +94,8 @@ namespace Player
 		[SerializeField] private int ammo_mag_ = 30; //size of mag
 		[SerializeField] private int ammo_curr_ = 30; //curr ammo in mag
 		[SerializeField] private int ultima_damage_ = 40;
+		[SerializeField] private float ultima_cooldown_ = 0.175f; //only triggers after ultima is finished
+		private float ultima_cooldown_delta_ = 0.0f;
 
 		[Header("VFX SFX")]
 		[SerializeField] private ParticleSystem jump_vfx1_;
@@ -108,7 +111,9 @@ namespace Player
 		private AudioSource audio_;
 
 		[Header("UI")]
-		[SerializeField] TMP_Text ammo_txt_;
+		[SerializeField] private TMP_Text ammo_txt_;
+		[SerializeField] private Slider hp_slider_;
+		[SerializeField] private UI_Inventory ui_inventory_;
 
 		// cinemachine
 		private float cinemachine_target_yaw_;
@@ -159,11 +164,13 @@ namespace Player
 
 		private const float threshold_ = 0.01f;
 
-
 		// gameplay
 		private bool is_dead_ = false;
 		private bool is_reload_ = false;
 		private bool is_ultima_ = false;
+
+		// inventory
+		private Inventory inventory_;
 
 		private void Awake()
 		{
@@ -183,6 +190,8 @@ namespace Player
 			Init(); //IDamageable method
 
 			DoUpdateAmmoTxt();
+
+			
 		}
 
 		private void Start()
@@ -207,6 +216,8 @@ namespace Player
 			jump_cooldown_delta_ = jump_cooldown;
 			fall_cooldown_delta_ = fall_cooldown;
 
+			inventory_ = new Inventory();
+			ui_inventory_.SetInventory(inventory_);
 		}
 
 		private void Update()
@@ -568,11 +579,18 @@ namespace Player
 		{
 			if (is_reload_) { return; }
 
+            if (ultima_cooldown_delta_ > 0)
+            {
+				input_.is_ultima = false;
+				ultima_cooldown_delta_ -= Time.deltaTime;
+            }
+
 			if (input_.is_ultima)
 			{
 				Debug.Log("> Do Ultima");
 				input_.is_aiming = false;
 				is_ultima_ = true;
+				ultima_cooldown_delta_ = ultima_cooldown_;
 				//player_input_.actions.Disable(); //disabling input is too restrictive
 				ResetAnimLayerAndRigWeight();
 
@@ -641,6 +659,12 @@ namespace Player
 			ammo_curr_ += ammo_can_load;
 			is_reload_ = false;
 
+			DoUpdateAmmoTxt();
+		}
+
+		public void DoResetAmmoReserve()
+        {
+			ammo_reserve_ = 100;
 			DoUpdateAmmoTxt();
 		}
 
@@ -730,6 +754,11 @@ namespace Player
 			jump_vfx1_.Stop();
 			jump_vfx2_.Stop();
 		}
+
+		public void DoAddItem(Item item)
+        {
+			inventory_.AddItem(item);
+        }
 
 		/// <summary>
 		/// IDamageable methods
