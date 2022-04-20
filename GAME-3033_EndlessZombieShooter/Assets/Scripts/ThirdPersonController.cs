@@ -583,6 +583,7 @@ namespace Player
                 if (inventory_.GetItemList().Count > 0)
                 {
 					DoUseItem(inventory_.GetItemList()[0]);
+					audio_.PlayOneShot(reload_sfx_); //SFX
 				}
 				
 				input_.is_use_item = false;
@@ -786,6 +787,7 @@ namespace Player
 					break;
                 case Item.ItemType.AMMO:
 					ammo_reserve_ = 100;
+					DoUpdateAmmoTxt();
 					inventory_.RemoveItem(item);
 					break;
                 case Item.ItemType.MISSILE:

@@ -144,6 +144,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
 
     protected virtual void DoDeath()
     {
+
     }
 
     protected virtual void DoFlinch(GlobalEnums.FlinchType flinch_mode = GlobalEnums.FlinchType.DEFAULT)

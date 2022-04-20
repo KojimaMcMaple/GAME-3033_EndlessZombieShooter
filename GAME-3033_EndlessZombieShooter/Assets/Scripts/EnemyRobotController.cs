@@ -126,6 +126,15 @@ public class EnemyRobotController : EnemyController
             }
             animator_.SetTrigger(anim_id_die_);
         }
+
+        nav_.updatePosition = false;
+        nav_.updateRotation = false;
+        nav_.enabled = false;
+        rb_.isKinematic = false;
+        SetRagdollMode(true);
+        float rand_force = 50.0f * Random.Range(0.8f, 1.15f);
+        rb_.AddForce(Vector3.up * rand_force, ForceMode.Impulse);
+
         SetState(GlobalEnums.EnemyState.DIE);
         StartCoroutine(Despawn());
     }
