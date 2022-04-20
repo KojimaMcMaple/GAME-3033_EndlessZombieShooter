@@ -82,7 +82,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
             Collider[] cols = rig_.GetComponentsInChildren<Collider>();
             foreach (Collider item in cols)
             {
-                if (!item.CompareTag("FieldOfVision") && !!item.CompareTag("AtkHitBox"))
+                if (!item.CompareTag("FieldOfVision") && !item.CompareTag("AtkHitBox"))
                 {
                     ragdoll_cols_.Add(item);
                 }
@@ -91,7 +91,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
             Rigidbody[] rbs = rig_.GetComponentsInChildren<Rigidbody>();
             foreach (Rigidbody item in rbs)
             {
-                if (!item.CompareTag("FieldOfVision") && !!item.CompareTag("AtkHitBox"))
+                if (!item.CompareTag("FieldOfVision") && !item.CompareTag("AtkHitBox"))
                 {
                     ragdoll_rbs_.Add(item);
                 }

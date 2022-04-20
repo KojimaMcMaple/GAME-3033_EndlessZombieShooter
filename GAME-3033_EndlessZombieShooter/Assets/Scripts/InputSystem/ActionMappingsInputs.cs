@@ -16,6 +16,7 @@ namespace Player
 		public bool is_shooting;
 		public bool is_reloading;
 		public bool is_ultima;
+		public bool is_use_item;
 
 		public bool pause;
 
@@ -72,6 +73,11 @@ namespace Player
 			UltimaInput(value.isPressed);
 		}
 
+		public void OnUseItem(InputValue value)
+		{
+			UseItemInput(value.isPressed);
+		}
+
 		public void OnPause(InputValue value)
         {
 			PauseInput(value.isPressed);
@@ -119,6 +125,11 @@ namespace Player
 		public void UltimaInput(bool newUltimaState)
 		{
 			is_ultima = newUltimaState;
+		}
+
+		public void UseItemInput(bool newUseItemState)
+		{
+			is_use_item = newUseItemState;
 		}
 
 		public void PauseInput(bool newPauseState)

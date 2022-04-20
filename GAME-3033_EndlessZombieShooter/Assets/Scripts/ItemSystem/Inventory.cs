@@ -6,23 +6,41 @@ using System;
 public class Inventory
 {
     public event EventHandler OnItemListChanged;
-    
-    private List<Item> item_list_;
+    private Action<Item> UseItemAction;
 
-    public Inventory()
+    private List<Item> item_list_;
+    [SerializeField] private int max_item_count_ = 8;
+
+    public Inventory(Action<Item> useItemAction)
     {
+        UseItemAction = useItemAction;
         item_list_ = new List<Item>();
 
         AddItem(new Item { item_type = Item.ItemType.POTION, amount = 1 });
         AddItem(new Item { item_type = Item.ItemType.AMMO, amount = 1 });
+        UseItemAction = useItemAction;
     }
 
     public void AddItem(Item item)
     {
-        item_list_.Add(item);
+        if (item_list_.Count < max_item_count_)
+        {
+            item_list_.Add(item);
+            OnItemListChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public void RemoveItem(Item item)
+    {
+        item_list_.Remove(item);
         OnItemListChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public void UseItem(Item item)
+    {
+        UseItemAction(item);
+    }
+    
     public List<Item> GetItemList()
     {
         return item_list_;

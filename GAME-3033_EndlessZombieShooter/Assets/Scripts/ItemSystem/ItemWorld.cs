@@ -4,14 +4,7 @@ using UnityEngine;
 
 public class ItemWorld : MonoBehaviour
 {
-    [SerializeField] private Item.ItemType item_type_;
-    [SerializeField] private int amount_ = 1;
-    private Item item_;
-
-    private void Awake()
-    {
-        item_ = new Item { item_type = item_type_, amount = amount_ };
-    }
+    [SerializeField] private Item item_;
 
     public static ItemWorld SpawnItemWorld(Vector3 position, Item item)
     {

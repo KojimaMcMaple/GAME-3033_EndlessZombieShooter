@@ -21,6 +21,7 @@ public class EnemyAtkHitboxController : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        Debug.Log("> EnemyAtkHitboxController OnTriggerStay!");
         if (parent_controller_.IsAtkHitboxActive())
         {
             IDamageable<int> other_interface = other.gameObject.GetComponent<IDamageable<int>>();

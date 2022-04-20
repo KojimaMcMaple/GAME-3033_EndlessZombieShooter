@@ -38,7 +38,7 @@ public class UI_Inventory : MonoBehaviour
         }
         int x = 0;
         int y = 0;
-        float item_slot_cell_size = 64f;
+        float item_slot_cell_size = 100f;
         foreach (Item item in inventory_.GetItemList())
         {
             RectTransform item_slot_transform = Instantiate(item_slot_template_, item_slot_container_).GetComponent<RectTransform>();
@@ -47,7 +47,7 @@ public class UI_Inventory : MonoBehaviour
             Image item_icon = item_slot_transform.Find("Icon").GetComponent<Image>();
             item_icon.sprite = item.GetSprite();
             x++;
-            if (x>6)
+            if (x>8)
             {
                 x = 0;
                 y++;

@@ -216,7 +216,7 @@ namespace Player
 			jump_cooldown_delta_ = jump_cooldown;
 			fall_cooldown_delta_ = fall_cooldown;
 
-			inventory_ = new Inventory();
+			inventory_ = new Inventory(DoUseItem);
 			ui_inventory_.SetInventory(inventory_);
 		}
 
@@ -229,6 +229,7 @@ namespace Player
 				CheckInputUltima();
 				CheckInputAimAndShoot();
 				CheckInputReload();
+				CheckInputUseItem();
 			}
 			JumpAndGravity();
 			GroundedCheck();
@@ -575,6 +576,19 @@ namespace Player
 			}
 		}
 
+		private void CheckInputUseItem()
+		{
+			if (input_.is_use_item)
+			{
+                if (inventory_.GetItemList().Count > 0)
+                {
+					DoUseItem(inventory_.GetItemList()[0]);
+				}
+				
+				input_.is_use_item = false;
+			}
+		}
+
 		private void CheckInputUltima()
 		{
 			if (is_reload_) { return; }
@@ -760,6 +774,27 @@ namespace Player
 			inventory_.AddItem(item);
         }
 
+		public void DoUseItem(Item item)
+        {
+            switch (item.item_type)
+            {
+                case Item.ItemType.NONE:
+                    break;
+                case Item.ItemType.POTION:
+					HealDamage(20);
+					inventory_.RemoveItem(item);
+					break;
+                case Item.ItemType.AMMO:
+					ammo_reserve_ = 100;
+					inventory_.RemoveItem(item);
+					break;
+                case Item.ItemType.MISSILE:
+                    break;
+                default:
+                    break;
+            }
+        }
+
 		/// <summary>
 		/// IDamageable methods
 		/// </summary>
@@ -779,6 +814,7 @@ namespace Player
 											  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
 											  //flash_vfx_.DoFlash();
 			audio_.PlayOneShot(damaged_sfx_[Random.Range(0, damaged_sfx_.Count)]); //SFX
+			hp_slider_.value = ((float)health / (float)max_hp_); //Updates UI
 
 			if (health == 0)
 			{
@@ -787,8 +823,6 @@ namespace Player
 				gameObject.SetActive(false);
 			}
 			Debug.Log(">>> Player HP is " + health.ToString());
-
-			//OnHealthChanged.Invoke(health);
 		}
 		public void HealDamage(int heal_value) //Adds health to object
 		{
@@ -801,9 +835,9 @@ namespace Player
 			{
 				health += heal_value;
 				health = health > max_hp_ ? max_hp_ : health; //Clamps health so it doesn't exceed hp_
-													  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
+															  //game_manager_.SetUIHPBarValue((float)health / (float)hp_); //Updates UI
+				hp_slider_.value = ((float)health / (float)max_hp_); //Updates UI
 			}
-			//OnHealthChanged.Invoke(health);
 		}
 
 		private void OnDrawGizmosSelected()
