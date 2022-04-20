@@ -132,8 +132,19 @@ public class EnemyRobotController : EnemyController
         nav_.enabled = false;
         rb_.isKinematic = false;
         SetRagdollMode(true);
-        float rand_force = 50.0f * Random.Range(0.8f, 1.15f);
+        float rand_force = 65.0f * Random.Range(0.8f, 1.2f);
         rb_.AddForce(Vector3.up * rand_force, ForceMode.Impulse);
+
+        int rand_item = Random.Range(0, 2);
+        if (rand_item == 0)
+        {
+            ItemWorld.SpawnItemWorld(transform.position, new Item { item_type = Item.ItemType.POTION, amount = 1 });
+        }
+        else
+        {
+            ItemWorld.SpawnItemWorld(transform.position, new Item { item_type = Item.ItemType.AMMO, amount = 1 });
+        }
+        
 
         SetState(GlobalEnums.EnemyState.DIE);
         StartCoroutine(Despawn());

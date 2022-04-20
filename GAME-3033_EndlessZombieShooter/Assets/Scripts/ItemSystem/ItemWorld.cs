@@ -8,7 +8,8 @@ public class ItemWorld : MonoBehaviour
 
     public static ItemWorld SpawnItemWorld(Vector3 position, Item item)
     {
-        Transform temp = Instantiate(item.GetPrefab(), position, Quaternion.identity);
+        Transform pf = item.GetPrefab();
+        Transform temp = Instantiate(pf, position, pf.rotation);
         ItemWorld iw = temp.GetComponent<ItemWorld>();
         iw.SetItem(item);
 
