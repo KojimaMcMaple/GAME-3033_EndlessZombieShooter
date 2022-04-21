@@ -16,7 +16,7 @@ namespace Player
 {
 	[RequireComponent(typeof(CharacterController))]
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-	[RequireComponent(typeof(PlayerInput))]
+	[RequireComponent(typeof(UnityEngine.InputSystem.PlayerInput))]
 #endif
 	public class ThirdPersonController : MonoBehaviour, IDamageable<int>
 	{
@@ -112,6 +112,7 @@ namespace Player
 
 		[Header("UI")]
 		[SerializeField] private TMP_Text ammo_txt_;
+		[SerializeField] private TMP_Text killcount_txt_;
 		[SerializeField] private Slider hp_slider_;
 		[SerializeField] private UI_Inventory ui_inventory_;
 
@@ -133,6 +134,7 @@ namespace Player
 		private float terminal_velocity_ = 53.0f;
 		private bool can_player_rotate_ = true;
 		private bool can_double_jump_ = true;
+		private UnityEngine.InputSystem.PlayerInput player_input_;
 
 		// timeout deltatime
 		private float jump_cooldown_delta_;
@@ -161,6 +163,7 @@ namespace Player
 		private GameObject main_cam_;
 		private BulletManager bullet_manager_;
 		private VfxManager vfx_manager_;
+		private GameManager game_manager_;
 
 		private const float threshold_ = 0.01f;
 
@@ -168,6 +171,7 @@ namespace Player
 		private bool is_dead_ = false;
 		private bool is_reload_ = false;
 		private bool is_ultima_ = false;
+		private int killcount = 0;
 
 		// inventory
 		private Inventory inventory_;
@@ -181,17 +185,17 @@ namespace Player
 			}
 			aim_cam_.gameObject.SetActive(false);
 			zoom_cam_.gameObject.SetActive(false);
+			player_input_ = GetComponent<UnityEngine.InputSystem.PlayerInput>();
 			bullet_manager_ = FindObjectOfType<BulletManager>();
 			vfx_manager_ = FindObjectOfType<VfxManager>();
 			audio_ = GetComponent<AudioSource>();
+			game_manager_ = FindObjectOfType<GameManager>();
 
 			ammo_curr_ = ammo_curr_ > ammo_mag_ ? ammo_mag_ : ammo_curr_;
 
 			Init(); //IDamageable method
 
 			DoUpdateAmmoTxt();
-
-			
 		}
 
 		private void Start()
@@ -224,6 +228,7 @@ namespace Player
 		{
 			has_animator_ = TryGetComponent(out animator_);
 
+			CheckInputPause();
 			if (!is_ultima_)
 			{
 				CheckInputUltima();
@@ -628,7 +633,21 @@ namespace Player
 			}
 		}
 
-		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+		private void CheckInputPause()
+		{
+			if (input_.pause)
+			{
+				game_manager_.DoTogglePauseGame();
+				input_.pause = false;
+			}
+		}
+
+		public void SetPlayerInputEnabled(bool value)
+        {
+			player_input_.enabled = value;
+        }
+
+        private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
 			if (lfAngle > 360f) lfAngle -= 360f;
@@ -686,6 +705,11 @@ namespace Player
 		public void DoUpdateAmmoTxt()
         {
 			ammo_txt_.text = ammo_curr_.ToString() + "/" + ammo_reserve_.ToString();
+		}
+
+		public void DoUpdateKillcountTxt()
+		{
+			killcount_txt_.text = killcount.ToString();
 		}
 
 		private void DoEndUltima()
@@ -795,6 +819,11 @@ namespace Player
                 default:
                     break;
             }
+        }
+
+		public void IncrementKillcount()
+        {
+			killcount++;
         }
 
 		/// <summary>

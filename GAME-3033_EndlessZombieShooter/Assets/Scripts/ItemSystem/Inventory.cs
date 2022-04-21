@@ -9,7 +9,7 @@ public class Inventory
     private Action<Item> UseItemAction;
 
     private List<Item> item_list_;
-    [SerializeField] private int max_item_count_ = 8;
+    private int max_item_count_ = 7;
 
     public Inventory(Action<Item> useItemAction)
     {

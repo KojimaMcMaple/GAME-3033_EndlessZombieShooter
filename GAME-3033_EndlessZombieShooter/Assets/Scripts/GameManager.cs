@@ -17,6 +17,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string next_level_;
     [SerializeField] private string prev_level_;
     [SerializeField] private GameObject overlay_panel_;
+    [SerializeField] private GameObject pause_overlay_panel_;
+    private bool is_paused_ = false;
+    [SerializeField] private GameObject gameover_overlay_panel_;
+    private bool is_gameover_ = false;
     [SerializeField] private Slider ui_hp_bar_;
     [SerializeField] private Text ui_score_;
     private int score_ = 0;
@@ -24,10 +28,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip click_sfx_;
     private AudioSource audio_source_;
 
-    // LAB1
     private Rect screen_;
     private Rect safe_area_;
     private RectTransform back_btn_rect_transform_;
+
+    private Player.ThirdPersonController player_;
 
     void Awake()
     {
@@ -41,6 +46,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log(">>> NO ui_score_!");
         }
+
+        player_ = FindObjectOfType<Player.ThirdPersonController>();
     }
 
     //void Update()
@@ -123,6 +130,52 @@ public class GameManager : MonoBehaviour
     {
         audio_source_.PlayOneShot(click_sfx_);
         overlay_panel_.SetActive(false);
+    }
+
+    public void DoPauseGame()
+    {
+        pause_overlay_panel_.SetActive(true );
+        is_paused_ = true;
+        player_.SetPlayerInputEnabled(false);
+        //Time.timeScale = 0.0f;
+    }
+
+    public void DoResumeGame()
+    {
+        Time.timeScale = 1.0f;
+        pause_overlay_panel_.SetActive(false);
+        is_paused_ = false;
+        player_.SetPlayerInputEnabled(true);
+    }
+
+    public void DoTogglePauseGame()
+    {
+        if (is_gameover_)
+        {
+            return;
+        }
+
+        if (is_paused_)
+        {
+            DoResumeGame();
+        }
+        else
+        {
+            DoPauseGame();
+        }
+    }
+
+    public void DoGameOver()
+    {
+        is_gameover_ = true;
+        gameover_overlay_panel_.SetActive(true);
+        player_.SetPlayerInputEnabled(false);
+        Time.timeScale = 0.0f;
+    }
+
+    public bool IsGameOver()
+    {
+        return is_gameover_;
     }
 
     /// <summary>

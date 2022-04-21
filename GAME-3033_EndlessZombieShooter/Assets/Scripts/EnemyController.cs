@@ -57,6 +57,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
 
     // MANAGERS
     protected VfxManager vfx_manager_;
+    private ObjManager obj_manager_;
 
     // SFX
     [SerializeField] protected List<AudioClip> attack_sfx_ = new List<AudioClip>();
@@ -75,6 +76,8 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
 
         vfx_manager_ = FindObjectOfType<VfxManager>();
         hit_cooldown_delta_ = hit_cooldown_;
+
+        obj_manager_ = FindObjectOfType<ObjManager>();
 
         // RAGDOLL
         if (rig_ != null)
@@ -100,6 +103,25 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         }
 
         Init(); //IDamageable method
+    }
+
+    public void DoSpawnIn()
+    {
+        health = hp_;
+        is_death_ = false;
+        state_ = GlobalEnums.EnemyState.IDLE;
+        SetNavMeshMode(false);
+        SetRagdollMode(true);
+        gameObject.SetActive(true);
+        StartCoroutine(DoEndSpawnIn());
+    }
+
+    protected IEnumerator DoEndSpawnIn()
+    {
+        yield return new WaitForSeconds(3.0f);
+        SetRagdollMode(false);
+        SetNavMeshMode(true);
+        DoAggro();
     }
 
     protected void DoBaseUpdate()
@@ -171,6 +193,31 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         //atk_indicator_vfx_.Stop();
     }
 
+    public virtual void SetNavMeshMode(bool value) //can be integrated in SetRagdollMode ?
+    {
+        if (value)
+        {
+            nav_.enabled = true;
+            nav_.updatePosition = true;
+            nav_.updateRotation = true;
+            nav_.isStopped = false;
+            rb_.isKinematic = true;
+            DoSetCanMove(true);
+        }
+        else
+        {
+            DoSetCanMove(false);
+            if (nav_.isOnNavMesh) //in case enemy is thrown off navmesh
+            {
+                nav_.isStopped = true;
+            }
+            nav_.updatePosition = false;
+            nav_.updateRotation = false;
+            nav_.enabled = false;
+            rb_.isKinematic = false;
+        }
+    }
+
     public virtual void SetRagdollMode(bool value)
     {
         animator_.enabled = !value;
@@ -191,15 +238,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
         state_ = GlobalEnums.EnemyState.STUNNED;
         is_stunned_ = true;
 
-        DoSetCanMove(false);
-        if (nav_.isOnNavMesh) //in case enemy is thrown off navmesh
-        {
-            nav_.isStopped = true;
-        }
-        nav_.updatePosition = false;
-        nav_.updateRotation = false;
-        nav_.enabled = false;
-        rb_.isKinematic = false;
+        SetNavMeshMode(false);
 
         //animator_.applyRootMotion = false; //very important
 
@@ -238,12 +277,7 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
                 SetRagdollMode(false);
             }
 
-            nav_.enabled = true;
-            nav_.updatePosition = true;
-            nav_.updateRotation = true;
-            nav_.isStopped = false;
-            rb_.isKinematic = true;
-            DoSetCanMove(true);
+            SetNavMeshMode(true);
 
             is_stunned_ = false;
             DoAggro();
@@ -358,7 +392,8 @@ public class EnemyController : MonoBehaviour, IDamageable<int>
     protected IEnumerator Despawn()
     {
         yield return new WaitForSeconds(8.0f);
-        this.gameObject.SetActive(false);
+        //this.gameObject.SetActive(false); //SetActive in ReturnObj
+        obj_manager_.ReturnObj(this.gameObject, type_);
     }
 
     /// <summary>

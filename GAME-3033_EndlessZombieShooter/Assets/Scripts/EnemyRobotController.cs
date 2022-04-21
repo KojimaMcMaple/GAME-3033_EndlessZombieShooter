@@ -132,7 +132,7 @@ public class EnemyRobotController : EnemyController
         nav_.enabled = false;
         rb_.isKinematic = false;
         SetRagdollMode(true);
-        float rand_force = 65.0f * Random.Range(0.8f, 1.2f);
+        float rand_force = 75.0f * Random.Range(0.8f, 1.2f);
         rb_.AddForce(Vector3.up * rand_force, ForceMode.Impulse);
 
         int rand_item = Random.Range(0, 2);
