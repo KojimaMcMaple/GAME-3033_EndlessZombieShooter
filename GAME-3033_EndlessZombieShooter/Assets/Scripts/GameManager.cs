@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
 
     private Player.ThirdPersonController player_;
 
+    private SaveFlag save_flag_;
+
     void Awake()
     {
         audio_source_ = GetComponent<AudioSource>();
@@ -48,6 +50,7 @@ public class GameManager : MonoBehaviour
         }
 
         player_ = FindObjectOfType<Player.ThirdPersonController>();
+        save_flag_ = FindObjectOfType<SaveFlag>();
     }
 
     //void Update()
@@ -94,6 +97,15 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(next_level_);
     }
 
+    public void DoLoadSave()
+    {
+        if (save_flag_ != null)
+        {
+            DontDestroyOnLoad(save_flag_.gameObject);
+        }
+        DoLoadNextLevel();
+    }
+
     /// <summary>
     /// Loads prev level
     /// </summary>
@@ -137,7 +149,7 @@ public class GameManager : MonoBehaviour
         pause_overlay_panel_.SetActive(true );
         is_paused_ = true;
         player_.SetPlayerInputEnabled(false);
-        //Time.timeScale = 0.0f;
+        Time.timeScale = 0.0f;
     }
 
     public void DoResumeGame()
@@ -176,6 +188,11 @@ public class GameManager : MonoBehaviour
     public bool IsGameOver()
     {
         return is_gameover_;
+    }
+
+    public void DoSaveData()
+    {
+        player_.DoSaveData();
     }
 
     /// <summary>

@@ -171,7 +171,9 @@ namespace Player
 		private bool is_dead_ = false;
 		private bool is_reload_ = false;
 		private bool is_ultima_ = false;
-		private int killcount = 0;
+		private int killcount_ = 0;
+		private SaveFlag save_flag_;
+		private Vector3 start_pos_ = Vector3.zero;
 
 		// inventory
 		private Inventory inventory_;
@@ -191,11 +193,20 @@ namespace Player
 			audio_ = GetComponent<AudioSource>();
 			game_manager_ = FindObjectOfType<GameManager>();
 
-			ammo_curr_ = ammo_curr_ > ammo_mag_ ? ammo_mag_ : ammo_curr_;
+			start_pos_ = transform.position;
 
 			Init(); //IDamageable method
 
+			save_flag_ = FindObjectOfType<SaveFlag>();
+            if (save_flag_ != null)
+            {
+				DoLoadSaveData();
+			}
+
+			ammo_curr_ = ammo_curr_ > ammo_mag_ ? ammo_mag_ : ammo_curr_;
+
 			DoUpdateAmmoTxt();
+			DoUpdateKillcountTxt();
 		}
 
 		private void Start()
@@ -709,7 +720,7 @@ namespace Player
 
 		public void DoUpdateKillcountTxt()
 		{
-			killcount_txt_.text = killcount.ToString();
+			killcount_txt_.text = killcount_.ToString();
 		}
 
 		private void DoEndUltima()
@@ -823,8 +834,36 @@ namespace Player
 
 		public void IncrementKillcount()
         {
-			killcount++;
+			killcount_++;
+			DoUpdateKillcountTxt();
         }
+
+		public void DoSaveData()
+        {
+			PlayerPrefs.SetFloat("PlayerPosX", transform.position.x);
+			PlayerPrefs.SetFloat("PlayerPosY", transform.position.y);
+			PlayerPrefs.SetFloat("PlayerPosZ", transform.position.z);
+			PlayerPrefs.SetInt("PlayerHP", health);
+			PlayerPrefs.SetInt("PlayerAmmoCurr", ammo_curr_);
+			PlayerPrefs.SetInt("PlayerAmmoReserve", ammo_reserve_);
+			PlayerPrefs.SetInt("PlayerKillcount", killcount_);
+        }
+
+		public void DoLoadSaveData()
+		{
+			float x = PlayerPrefs.GetFloat("PlayerPosX", start_pos_.x);
+			float y = PlayerPrefs.GetFloat("PlayerPosY", start_pos_.y);
+			float z = PlayerPrefs.GetFloat("PlayerPosZ", start_pos_.z);
+			health = PlayerPrefs.GetInt("PlayerHP", max_hp_);
+			ammo_curr_ = PlayerPrefs.GetInt("PlayerAmmoCurr", ammo_curr_);
+			ammo_reserve_ = PlayerPrefs.GetInt("PlayerAmmoReserve", ammo_reserve_);
+			killcount_ = PlayerPrefs.GetInt("PlayerKillcount", killcount_);
+
+			var player_controller = GetComponent<CharacterController>();
+			player_controller.enabled = false;
+			transform.position = new Vector3(x,y+1,z);
+			player_controller.enabled = true;
+		}
 
 		/// <summary>
 		/// IDamageable methods
@@ -851,7 +890,8 @@ namespace Player
 			{
 				is_dead_ = true;
 				//explode_manager_.GetObj(this.transform.position, obj_type);
-				gameObject.SetActive(false);
+				//gameObject.SetActive(false);
+				game_manager_.DoGameOver();
 			}
 			Debug.Log(">>> Player HP is " + health.ToString());
 		}
