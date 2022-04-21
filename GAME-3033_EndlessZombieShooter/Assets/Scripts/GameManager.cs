@@ -94,6 +94,7 @@ public class GameManager : MonoBehaviour
     {
         audio_source_.PlayOneShot(click_sfx_);
         StartCoroutine(Delay());
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene(next_level_);
     }
 
@@ -113,6 +114,7 @@ public class GameManager : MonoBehaviour
     {
         audio_source_.PlayOneShot(click_sfx_);
         StartCoroutine(Delay());
+        Time.timeScale = 1.0f;
         SceneManager.LoadScene(prev_level_);
     }
 
